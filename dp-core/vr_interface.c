@@ -1016,7 +1016,12 @@ vhost_drv_add(struct vr_interface *vif,
     vif->vif_tx = vhost_tx;
     vif->vif_rx = vhost_rx;
     vif->vif_mac_request = vhost_mac_request;
-    vif->vif_l3mh_loip = vifr->vifr_loopback_ip;
+
+    if (!vifr) {
+        vif->vif_l3mh_loip = 0;
+    } else {
+        vif->vif_l3mh_loip = vifr->vifr_loopback_ip;
+    }
 
     ret = hif_ops->hif_add(vif);
     if (ret)
@@ -1026,7 +1031,7 @@ vhost_drv_add(struct vr_interface *vif,
      * that vhost is functional
      */
     for (i = 0; i < VR_MAX_PHY_INF; i++) {
-        if (vif->vif_bridge[i]) {
+        if (vif->vif_bridge && vif->vif_bridge[i]) {
             ret = hif_ops->hif_add_tap(vif->vif_bridge[i], vifr);
             if (ret)
                 return ret;
