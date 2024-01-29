@@ -1879,7 +1879,8 @@ flow_table_setup(void)
 }
 
 static int
-fill_flow_req(vr_flow_req *req, unsigned long flow_index, char action)
+fill_flow_req(vr_flow_req *req, unsigned long flow_index, char action,
+        bool flush)
 {
     struct vr_flow_entry *fe;
 
@@ -1941,6 +1942,11 @@ fill_flow_req(vr_flow_req *req, unsigned long flow_index, char action)
         break;
 
     case 'i':
+        if (fe->fe_flags & VR_FLOW_FLAG_EVICTED) {
+            if (!flush)
+                printf("Flow %lu is evicted!\n", flow_index);
+            return -1;
+        }
         req->fr_flags = VR_FLOW_FLAG_ACTIVE ^ VR_FLOW_FLAG_ACTIVE;
         req->fr_action = VR_FLOW_ACTION_DROP;
         break;
@@ -1965,7 +1971,7 @@ fill_flow_req(vr_flow_req *req, unsigned long flow_index, char action)
 static void
 flow_do_op(unsigned long flow_index, char action)
 {
-    if (fill_flow_req(&flow_req, flow_index, action))
+    if (fill_flow_req(&flow_req, flow_index, action, false))
         return;
     flow_make_flow_req(&flow_req, "vr_flow_req");
     return;
@@ -2153,7 +2159,7 @@ run_flush(void)
     printf("Scanning flow table\n");
     gettimeofday(&last_time, NULL);
     for (i = 0; i < ft->ft_num_entries; i++) {
-        if (fill_flow_req(&table[count], i, 'i'))
+        if (fill_flow_req(&table[count], i, 'i', true))
             continue;
         count++;
     }
