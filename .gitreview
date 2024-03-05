@@ -1,5 +1,5 @@
 [gerrit]
 host=gerrit.opensdn.io
 port=29418
-project=tungstenfabric/tf-vrouter.git
+project=opensdn-io/tf-vrouter.git
 defaultbranch=master
