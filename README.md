@@ -20,5 +20,5 @@ module.
 1. Contrail-dev-env container process can be followed to build vrouter.ko module and
 contrail-vrouter-dpdk binary, which can be found [here](https://github.com/Juniper/contrail-dev-env).
 
-2. The process for tungsten fabric can be found in tf-dev-env repository, which can be found
-[here](https://github.com/tungstenfabric/tf-dev-env).
+2. The process can be found in tf-dev-env repository, which can be found
+[here](https://github.com/opensdn-io/tf-dev-env).

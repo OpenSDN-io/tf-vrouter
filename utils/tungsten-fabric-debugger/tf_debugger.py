@@ -345,7 +345,7 @@ def Running_GDB(ID, VERSION, core_file_name):
   running_GDB = subprocess.run(['gdb' ,'-x', 'Buffered_GDB_output.txt'], cwd= debugger_location+build_id_version+"_"+build_version_number, stdout=subprocess.PIPE)
 
 def Calling_for_help():
-  print("\nTUNGSTEN FABRIC CORE ANALYZER USAGE\n[SCRIPT]<CORE FILE> -- for C++ module\n[SCRIPT]<CORE FILE> [-f]<VERSION NUMBER><ID NUMBER> -- to override and feed in the version and the id manually\n[SCRIPT]<CORE FILE>[-gdb] -- to pass a custom gdb file\n[SCRIPT][--help] -- for help\n[SCRIPT]<CORE FILE>[-f]<VERSION NUMBER><ID NUMBER>[-gdb]<GDB_SCRIPT.TXT> -- to override the version and the id manually and to pass a custom gdb script to run\n")
+  print("\nOPEN SDN CORE ANALYZER USAGE\n[SCRIPT]<CORE FILE> -- for C++ module\n[SCRIPT]<CORE FILE> [-f]<VERSION NUMBER><ID NUMBER> -- to override and feed in the version and the id manually\n[SCRIPT]<CORE FILE>[-gdb] -- to pass a custom gdb file\n[SCRIPT][--help] -- for help\n[SCRIPT]<CORE FILE>[-f]<VERSION NUMBER><ID NUMBER>[-gdb]<GDB_SCRIPT.TXT> -- to override the version and the id manually and to pass a custom gdb script to run\n")
 
 def Summary(VERSION,ID, HOST, TIME, AGENT):
   print("\nSUMMARY---\nMODULE :"+AGENT+"\nVERSION fo the GCORE :"+VERSION+"\nThe ID from the GCORE :"+ID+"\nThe HOST-NAME :"+HOST+"\nThe BUILD_TIME :"+TIME+"\nThe GDB output log file is stored in the directory :"+ID+"_"+VERSION+"\n")

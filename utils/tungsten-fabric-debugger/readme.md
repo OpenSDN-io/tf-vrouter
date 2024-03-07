@@ -1,7 +1,7 @@
-Tungsten Fabric Core Analyzer
+Core Analyzer
 
-Instructions to use Tungsten Fabric core Analyzer tool:  
-Tungsten Fabric core Analyzer is a debug tool which, given a gcore
+Instructions to use core Analyzer tool:
+core Analyzer is a debug tool which, given a gcore
 downloads the required debug binary and stripped binary files and runs a
 GDB script to figure out what caused the failure Steps to use the script
 - 1. python3 tf\_debugger <core file> - to run the script Command:
