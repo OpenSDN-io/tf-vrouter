@@ -1,8 +1,6 @@
 #
 # Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
 #
-import os
-import sys
 
 Import('VRutilsEnv')
 env = VRutilsEnv.Clone()
@@ -48,18 +46,19 @@ env.Command('libjnprvnet.a', None, 'make -C %s/vrouter/utils/vtest/vhost' % (src
 vrutil = env.StaticLibrary('libvrutil.a', libvrutil_objs)
 
 vtest_src = [
-                'vt_main.c',
-                'vt_message.c',
-                'vt_gen_lib.c',
-                'vt_gen_message_modules.c',
-                'vt_gen_sandesh.c',
-                'vt_gen_sandesh_expect.c',
-                'vt_sandesh_response.c',
-                'vt_process_xml.c',
-		'vt_packet.c'
-            ]
+    'vt_main.c',
+    'vt_message.c',
+    'vt_gen_lib.c',
+    'vt_gen_message_modules.c',
+    'vt_gen_sandesh.c',
+    'vt_gen_sandesh_expect.c',
+    'vt_sandesh_response.c',
+    'vt_process_xml.c',
+    'vt_packet.c'
+]
+vrouter_objs = list(map(lambda s_: env.Object(s_), vtest_src))
 
-vtest = env.Program('vtest', map(lambda s_: env.Object(s_), vtest_src), LIBS = env['LIBS'] + ['libjnprvnet.a'])
+vtest = env.Program('vtest', vrouter_objs, LIBS = env['LIBS'] + ['libjnprvnet.a'])
 env.Requires(vtest, 'libjnprvnet.a')
 env.Requires(vtest, vrutil)
 

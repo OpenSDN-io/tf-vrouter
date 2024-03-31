@@ -8,6 +8,8 @@ import os
 import copy
 import re
 import platform
+import six
+
 
 AddOption('--kernel-dir', dest='kernel-dir', action='store',
           help='Linux kernel source directory for vrouter.ko')
@@ -52,13 +54,12 @@ if compiler == 'gcc' or compiler == 'clang':
             env.Append(CCFLAGS='-march=' + 'core-avx2')
 
     flags = env['CCFLAGS']
-    autoflags_b = b''
     proc = subprocess.Popen(
         str(compiler) + ' ' + str(flags) +
         ' -dM -E - < /dev/null', stdout=subprocess.PIPE, shell=True)
-    (autoflags_b, _) = proc.communicate()
+    autoflags, _ = proc.communicate()
+    autoflags = six.ensure_str(autoflags)
 
-    autoflags = autoflags_b.decode('utf-8')
     if autoflags.find('__x86_64__') != -1:
         env.Append(CCFLAGS='-D__VR_X86_64__')
     if autoflags.find('__AVX2__') != -1:
@@ -130,7 +131,8 @@ def shellCommand(cmd):
         python 2.6
     """
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    (output, _) = proc.communicate()
+    output, _ = proc.communicate()
+    output = six.ensure_str(output)
     return output.strip()
 
 

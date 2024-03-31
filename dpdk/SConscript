@@ -3,6 +3,7 @@
 # Copyright (c) 2014, 2015 Juniper Networks, Inc. All rights reserved.
 #
 import os
+import six
 import subprocess
 
 Import('VRouterEnv')
@@ -18,6 +19,7 @@ env.Append(CCFLAGS = '-Werror -Wall')
 gpp_version = subprocess.check_output(
     "g++ --version | grep g++ | awk '{print $3}'",
     shell=True).rstrip()
+gpp_version = six.ensure_str(gpp_version)
 if int(gpp_version.split(".")[0]) >= 8:
     # auto_ptr is depricated
     env.Append(CCFLAGS = '-Wno-error=deprecated-declarations -Wno-deprecated-declarations')
@@ -57,23 +59,24 @@ env.Alias('install',
 # Comment the following lines till UT end if the build system doesnt have SSE3
 # TODO: Add libpcap-devel, libpcap to buildRequires in spec before enabling this.
 if 'vrouter-ut' in COMMAND_LINE_TARGETS:
-    vtest = env.Command(target = "all_tests.log",
-                source = "../utils/vtest/vtest",
-                action =
-                    "./vrouter/utils/vtest/all_tests_run"
-                        + " -b " + Dir(env['TOP']).abspath
-                        + " -x vrouter/utils/vtest/tests"
-                        + " -l $TARGET"
-                )
+    vtest = env.Command(
+        target = "all_tests.log",
+        source = "../utils/vtest/vtest",
+        action =
+            "./vrouter/utils/vtest/all_tests_run"
+                + " -b " + Dir(env['TOP']).abspath
+                + " -x vrouter/utils/vtest/tests"
+                + " -l $TARGET"
+        )
     env.Alias('vrouter-ut', vtest)
     env.Requires(vtest, dpdk_vrouter)
 
 # UT end
 def vrouter_coverage(target, source, env):
     os.system('lcov --base-directory . --directory' +  " ./build/coverage/vrouter/ " +
-                ' -c --ignore-errors gcov -o vrouter_test.info')
+              ' -c --ignore-errors gcov -o vrouter_test.info')
     os.system('genhtml -o' + " ./build/coverage/vrouter/ " +
-                  ' -t "code coverage" --num-spaces 4 vrouter_test.info')
+              ' -t "code coverage" --num-spaces 4 vrouter_test.info')
 
 if env['OPT'] == 'coverage':
     code_coverage = env.Command(Dir('.'), '', vrouter_coverage)
