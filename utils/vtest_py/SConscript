@@ -21,7 +21,7 @@ import platform
 
 Import('VRutilsEnv')
 env = VRutilsEnv.Clone()
-VTestPyEnv = env;
+VTestPyEnv = env
 
 src_root = Dir('#').srcnode().abspath
 build_root = Dir(env['TOP']).abspath
@@ -29,11 +29,11 @@ vtest_py_venv_root = build_root + "/vrouter/utils/vtest_py_venv"
 vtest_py_src_root = src_root + "/vrouter/utils/vtest_py"
 vtest_py_venv_sock_dir = vtest_py_venv_root + "/sock/"
 
-print "src_root %s" %(src_root)
-print "build_root %s" %(build_root)
-print "vtest_py_venv_root %s" %(vtest_py_venv_root)
-print "vtest_py_src_root %s" %(vtest_py_src_root)
-print "vtest_py_venv_sock_dir %s" %(vtest_py_venv_sock_dir)
+print("src_root %s" %(src_root))
+print("build_root %s" %(build_root))
+print("vtest_py_venv_root %s" %(vtest_py_venv_root))
+print("vtest_py_src_root %s" %(vtest_py_src_root))
+print("vtest_py_venv_sock_dir %s" %(vtest_py_venv_sock_dir))
 
 # create venv directory
 create_venv_dir = env.Command("create_venv_dir", [],

@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/env python3
 
 import os
 from os import path
@@ -8,6 +8,7 @@ import platform
 import subprocess
 import logging
 import xml.etree.ElementTree as ET
+
 
 logfile = None
 if os.environ.get('VTEST_PY_VENV_PATH'):
@@ -73,7 +74,7 @@ def parse(cmd):
             path_cmd = '{}/debug/vrouter/dpdk/contrail-vrouter-dpdk'.\
                 format(build_path)
             vrouter_path = os.path.realpath(path_cmd)
-	else:
+        else:
             vrouter_path = vrouter_path.split(':')[0]
         logging.info("Using default vrouter path - {}".format(vrouter_path))
     else:
@@ -88,7 +89,7 @@ def parse(cmd):
             path_cmd = '{}/debug/vrouter/utils/vtest/vtest'.format(
                 build_path)
             vtest_path = os.path.realpath(path_cmd)
-	else:
+        else:
             vtest_path = vtest_path.split(':')[0]
         logging.info("Using default vtest path - {}".format(vtest_path))
     else:
