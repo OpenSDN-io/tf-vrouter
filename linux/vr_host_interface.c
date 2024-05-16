@@ -60,7 +60,22 @@ struct vr_interface vr_reset_interface;
 
 int vr_nf_hook_init(void);
 void vr_nf_hook_exit(void);
+
+#if ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
+        defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
+        RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+unsigned int vr_nf_hook(void *priv,
+                        struct sk_buff *skb,
+                        const struct nf_hook_state *state);
+#else
 unsigned int vr_nf_hook(unsigned int hooknum,
+                        struct sk_buff *skb,
+                        const struct net_device *in,
+                        const struct net_device *out,
+                        int (*okfn)(struct sk_buff *));
+#endif
+
+unsigned int _vr_nf_hook(unsigned int hooknum,
                         struct sk_buff *skb,
                         const struct net_device *in,
                         const struct net_device *out,
@@ -1841,12 +1856,24 @@ linux_if_add(struct vr_interface *vif)
 
     if (vif_is_virtual(vif)) {
         skb_queue_head_init(&vif->vr_skb_inputq);
+#if ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
+        defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
+        RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+        netif_napi_add(pkt_gro_dev, &vif->vr_napi, vr_napi_poll);
+#else
         netif_napi_add(pkt_gro_dev, &vif->vr_napi, vr_napi_poll, 64);
+#endif
         napi_enable(&vif->vr_napi);
 
         /* Lets enable for L2 as well */
         skb_queue_head_init(&vif->vr_skb_l2_inputq);
+#if ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
+        defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
+        RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+        netif_napi_add(pkt_l2_gro_dev, &vif->vr_l2_napi, vr_napi_poll);
+#else
         netif_napi_add(pkt_l2_gro_dev, &vif->vr_l2_napi, vr_napi_poll, 64);
+#endif
         napi_enable(&vif->vr_l2_napi);
     }
 
@@ -2657,12 +2684,33 @@ vr_host_interface_init(void)
     return &vr_linux_interface_ops;
 }
 
+
+#if ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
+        defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
+        RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+unsigned int vr_nf_hook(void *priv,
+                        struct sk_buff *skb,
+                        const struct nf_hook_state *state)
+{
+    return _vr_nf_hook(0, skb, NULL, NULL, NULL);
+}
+#else
+unsigned int vr_nf_hook(unsigned int hooknum,
+                        struct sk_buff *skb,
+                        const struct net_device *in,
+                        const struct net_device *out,
+                        int (*okfn)(struct sk_buff *))
+{
+    return _vr_nf_hook(hooknum, skb, in, out, okfn);
+}
+#endif
+
 unsigned int
-vr_nf_hook(unsigned int hooknum,
-           struct sk_buff *skb,
-           const struct net_device *in,
-           const struct net_device *out,
-           int (*okfn)(struct sk_buff *))
+_vr_nf_hook(unsigned int hooknum,
+            struct sk_buff *skb,
+            const struct net_device *in,
+            const struct net_device *out,
+            int (*okfn)(struct sk_buff *))
 {
     struct iphdr *iph;
     struct ethhdr *eth;
