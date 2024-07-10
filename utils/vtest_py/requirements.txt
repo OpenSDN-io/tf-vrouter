@@ -33,4 +33,4 @@ six==1.14.0
 typing==3.7.4.1
 wcwidth==0.1.9
 wheel==0.34.2
-zipp==1.2.0
+zipp==3.19.1
