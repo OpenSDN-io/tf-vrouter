@@ -19,7 +19,7 @@
 
 #include <rte_errno.h>
 
-#define MAX_LINE_SIZE   128
+#define MAX_LINE_SIZE   256
 #define HPI_MAX         16
 #define MOUNT_TABLE     "/proc/mounts"
 
