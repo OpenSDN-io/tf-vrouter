@@ -94,7 +94,7 @@ typedef struct virtq_control {
     int callfd;
 } virtq_control;
 
-struct set_host_virtq {
+extern struct set_host_virtq {
     struct vhost_vring_state num;
     struct vhost_vring_state base;
     struct vhost_vring_file kick;
