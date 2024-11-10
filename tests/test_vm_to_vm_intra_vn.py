@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from topo_base.vm_to_vm_intra_vn import VmToVmIntraVn
 import os

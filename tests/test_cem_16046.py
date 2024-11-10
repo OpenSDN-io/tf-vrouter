@@ -1,10 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
-import pytest
 import time
-import subprocess
 sys.path.append(os.getcwd())
 sys.path.append(os.getcwd() + '/lib/')
 from imports import *  # noqa

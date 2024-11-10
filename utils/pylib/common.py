@@ -4,7 +4,6 @@
 
 import ipaddress
 import netaddr
-import os
 import socket
 import struct
 from base import Base

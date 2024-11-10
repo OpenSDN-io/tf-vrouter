@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from topo_base.vm_to_fabric_intra_vn import VmToFabricIntraVn
 import os

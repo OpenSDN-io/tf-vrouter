@@ -286,11 +286,11 @@ dport                     Destination Port
 
 Examples:
 
-python pkt_tracer.py -f func                                                                                --Traces all symbols within func file
-python pkt_tracer.py -f func -r                                                                             --Traces all symbols within func file and also prints the return values from those symbols
-python pkt_tracer.py -f func -a src=192.168.100.3                                                           --Traces only those packets whose source IP address is 192.168.100.3
-python pkt_tracer.py -f func -a src=192.168.100.3 dest=192.168.100.4                                        --Traces only those packets whose source IP is 192.168.100.3 and destination IP is 192.168.100.4
-python pkt_tracer.py -f func -o -a src=192.168.100.3 dest=192.168.100.4 protocol=6 sport=4165 dport=16387      --Traces only those packets that satisfy all the filters applied
+python3 pkt_tracer.py -f func                                                                                --Traces all symbols within func file
+python3 pkt_tracer.py -f func -r                                                                             --Traces all symbols within func file and also prints the return values from those symbols
+python3 pkt_tracer.py -f func -a src=192.168.100.3                                                           --Traces only those packets whose source IP address is 192.168.100.3
+python3 pkt_tracer.py -f func -a src=192.168.100.3 dest=192.168.100.4                                        --Traces only those packets whose source IP is 192.168.100.3 and destination IP is 192.168.100.4
+python3 pkt_tracer.py -f func -o -a src=192.168.100.3 dest=192.168.100.4 protocol=6 sport=4165 dport=16387      --Traces only those packets that satisfy all the filters applied
 
 """
         print(help_string)

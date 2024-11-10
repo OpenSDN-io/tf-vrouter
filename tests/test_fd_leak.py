@@ -1,8 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
-import pytest
 sys.path.append(os.getcwd())
 sys.path.append(os.getcwd() + '/lib/')
 from imports import *  # noqa

@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/python3
 
 #
 # Copyright (c) 2018 Juniper Networks, Inc. All rights reserved.
@@ -9,7 +9,7 @@
 # dpdkvifstats.py
 The script is used to get the PPS statistics of DPDK vRouter.
 
-python dpdkvifstats.py
+python3 dpdkvifstats.py
   Options:
 
   -v VIF, --vif VIF     vif number - only number after vif0/

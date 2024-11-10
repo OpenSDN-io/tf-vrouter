@@ -1,9 +1,8 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from topo_base.vm_to_vm_inter_vn import VmToVmInterVn
 import os
 import sys
-import pytest
 sys.path.append(os.getcwd())
 sys.path.append(os.getcwd() + '/lib/')
 from imports import *  # noqa

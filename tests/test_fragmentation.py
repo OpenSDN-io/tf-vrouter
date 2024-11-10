@@ -1,7 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 from topo_base.vm_to_fabric_intra_vn import VmToFabricIntraVn
-import pytest
 import os
 import sys
 sys.path.append(os.getcwd())

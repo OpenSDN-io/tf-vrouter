@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # test vif mirroring with more then 1 physical interface
 
 import os

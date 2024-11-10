@@ -1,6 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-from topo_base.fabric_to_vm_inter_vn import FabricToVmInterVn
 import os
 import sys
 sys.path.append(os.getcwd())
