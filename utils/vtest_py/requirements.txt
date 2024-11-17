@@ -8,7 +8,6 @@ enum34==1.1.10
 flake8==3.7.9
 funcsigs==1.0.2
 functools32==3.2.3.post2
-future==0.18.2
 fysom==2.1.5
 gevent==1.4.0
 greenlet==0.4.15
@@ -29,7 +28,6 @@ pytest==4.6.9
 scandir==1.10.0
 scapy==2.4.3
 setuptools==44.1.0
-six==1.14.0
 typing==3.7.4.1
 wcwidth==0.1.9
 wheel==0.34.2

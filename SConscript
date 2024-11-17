@@ -8,7 +8,6 @@ import os
 import copy
 import re
 import platform
-import six
 
 
 AddOption('--kernel-dir', dest='kernel-dir', action='store',
@@ -58,7 +57,8 @@ if compiler == 'gcc' or compiler == 'clang':
         str(compiler) + ' ' + str(flags) +
         ' -dM -E - < /dev/null', stdout=subprocess.PIPE, shell=True)
     autoflags, _ = proc.communicate()
-    autoflags = six.ensure_str(autoflags)
+    if isinstance(autoflags, bytes):
+        autoflags = autoflags.decode()
 
     if autoflags.find('__x86_64__') != -1:
         env.Append(CCFLAGS='-D__VR_X86_64__')
@@ -132,7 +132,8 @@ def shellCommand(cmd):
     """
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
     output, _ = proc.communicate()
-    output = six.ensure_str(output)
+    if isinstance(output, bytes):
+        output = output.decode()
     return output.strip()
 
 
