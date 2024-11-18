@@ -1020,6 +1020,12 @@ vr_inet6_flow_nat(struct vr_flow_entry *fe, struct vr_packet *pkt,
     if (!vr_pkt_is_diag(pkt))
         vr_ip6_update_csum(pkt, ip_inc, port_inc);
 
+    if ((ip6->ip6_nxt == VR_IP_PROTO_ICMP6) &&
+        ((fe->fe_flags & VR_FLOW_FLAG_DNAT)||
+        (fe->fe_flags & VR_FLOW_FLAG_SNAT))){
+        icmph->icmp_csum = ~(vr_icmp6_checksum(ip6, icmph));
+    }
+
     if ((fe->fe_flags & VR_FLOW_FLAG_VRFT) && pkt->vp_nh &&
             ((pkt->vp_nh->nh_vrf != fmd->fmd_dvrf) ||
             (pkt->vp_nh->nh_flags & NH_FLAG_ROUTE_LOOKUP))) {
