@@ -353,6 +353,71 @@ class NatFlow(Flow):
         self.rflow_nh_id = rflow_nh_idx
 
 
+class Nat6Flow(Flow):
+    """
+    Nat6Flow class to create nat flow
+
+    Mandatory parameters:
+    --------------------
+    sip6 : str
+        Source ipv6 address
+    dip6 : str
+        Destination ipv6 address
+    sport : int
+        Source port
+    dport : int
+        Destination port
+    proto : int
+        Protocol
+    flow_dvrf : int
+        Flow dvrf
+    rflow_sip6 : str
+        Reverse flow source ipv6
+    rflow_dip6 : str
+        Reverse flow destination ipv6
+    flags : int
+        Flow flags
+    flow_nh_idx : int
+        Flow nexthop id
+    qos_id : int
+        Qos id
+    action : int
+        Flow action
+    ecmp_nh_index : int
+        Ecmp nexthop index
+    flow_vrf : int
+        Flow vrf
+    rflow_nh_idx : int
+        Reverse flow id
+    rflow_sport : int
+        Reverse flow source port
+    """
+
+    def __init__(self, sip6, dip6, sport, dport, proto, flow_dvrf,
+                 rflow_sip6, rflow_dip6, rflow_nh_idx, rflow_sport,
+                 **kwargs):
+        sip6_u, sip6_l = self.vt_ipv6(sip6)
+        dip6_u, dip6_l = self.vt_ipv6(dip6)
+        super(Nat6Flow, self).__init__(
+            sip6_l,
+            sip6_u,
+            dip6_l,
+            dip6_u,
+            sport,
+            dport,
+            proto,
+            family=constants.AF_INET6,
+            **kwargs)
+        self.fr_action = constants.VR_FLOW_ACTION_NAT
+        self.fr_flow_dvrf = flow_dvrf
+        self.rflow_sip_u = self.vt_ipv6(rflow_sip6)
+        self.rflow_sip_l = self.vt_ipv6(rflow_sip6)
+        self.rflow_dip_u = self.vt_ipv6(rflow_dip6)
+        self.rflow_dip_l = self.vt_ipv6(rflow_dip6)
+        self.rflow_sport = rflow_sport
+        self.rflow_nh_id = rflow_nh_idx
+
+
 class MirrorFlow(Flow):
     def __init__():
         pass
