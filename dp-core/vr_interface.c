@@ -2832,7 +2832,8 @@ vr_interface_add_response(vr_interface_req *req,
 static uint64_t
 vr_interface_get_drops(struct vr_interface *vif)
 {
-    uint8_t *count, cpu;
+    uint8_t *count;
+    unsigned int cpu;
     int stats_index;
     uint64_t total_drops;
 
