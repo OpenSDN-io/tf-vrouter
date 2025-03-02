@@ -37,6 +37,8 @@
 enum vr_opt_index {
 #define HELP_OPT                "help"
     HELP_OPT_INDEX,
+#define VR_KMODE                "vr_kmode"
+    VR_KMODE_INDEX,
 #define SOCKET_DIR_OPT          "vr_socket_dir"
     SOCKET_DIR_OPT_INDEX,
 #define NETLINK_PORT_OPT        "vr_netlink_port"
@@ -134,6 +136,7 @@ vt_Usage(void)
         "    <xml file> [deprecated]\n"
         "    --"HELP_OPT"       This help\n"
         "\n"
+        "    --"VR_KMODE" Enables interaction with the vrouter kernel module\n"
         "    --"SEND_SANDESH_REQ" <xml file>\n"
         "    --"RECV_SANDESH_RESP" <xml file>\n"
         "    --"SEND_RECV_PKT" <xml file>\n"
@@ -185,7 +188,9 @@ parse_long_opts(int opt_flow_index, char *optarg, vtest_cli_opt_t *cli_opt)
             strcpy(cli_opt->req_file, optarg);
         }
         break;
-
+    case VR_KMODE_INDEX:
+        cli_opt->vr_kmode = true;
+        break;
     case HELP_OPT_INDEX:
     default:
         vt_Usage();
@@ -195,6 +200,8 @@ parse_long_opts(int opt_flow_index, char *optarg, vtest_cli_opt_t *cli_opt)
 static struct option long_options[] = {
     [HELP_OPT_INDEX]                =   {HELP_OPT,              no_argument,
                                                     NULL,                   0},
+    [VR_KMODE_INDEX]                =   {VR_KMODE,              no_argument,
+                                                    NULL,                  0},
     [SEND_SANDESH_REQ_INDEX]        =   {SEND_SANDESH_REQ,      required_argument,
                                                     NULL,                   0},
     [RECV_SANDESH_RESP_INDEX]       =   {RECV_SANDESH_RESP,     required_argument,
@@ -255,7 +262,9 @@ main(int argc, char *argv[])
         return ret;
     }
 
-    set_platform_vtest();
+    if (!vtest.cli_opt.vr_kmode) {
+        set_platform_vtest();
+    }
     vtest.vrouter_cl = vr_get_nl_client(VR_NETLINK_PROTO_DEFAULT);
     if (!vtest.vrouter_cl) {
         fprintf(stderr, "Error registering NetLink client: %s (%d)\n",

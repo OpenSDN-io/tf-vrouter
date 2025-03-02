@@ -64,6 +64,8 @@ env.Requires(vtest, vrutil)
 
 Export('vtest')
 
+Return ('vtest')
+
 # Local Variables:
 # mode: python
 # End:

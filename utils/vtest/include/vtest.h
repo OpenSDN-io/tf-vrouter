@@ -127,6 +127,7 @@ typedef struct vtest_cli_opt_ {
     vtest_cli_cmd_t  cli_cmd;
     char req_file[VT_MAX_FILENAME];
     char resp_file[VT_MAX_FILENAME];
+    bool vr_kmode;
 } vtest_cli_opt_t;
 
 struct vtest {

@@ -21,11 +21,14 @@ env.Append(CCFLAGS = '-g')
 if 'install' in COMMAND_LINE_TARGETS:
     VRutilsEnv.Append(SRC_INSTALL_TARGET = '/utils/')
 
-subdirs = ['dkms', 'vtest', 'sandump']
-for sdir in  subdirs:
+subdirs = ['dkms', 'sandump']
+for sdir in subdirs:
     env.SConscript(sdir + '/SConscript',
                     exports='VRutilsEnv',
                     duplicate = 0)
+
+# Call scons for vtest separately to use it later
+vtest = env.SConscript('vtest/SConscript', exports='VRutilsEnv', duplicate = 0)
 
 vtest_py_ut_targets = ['vrouter-py-ut:test', 'vrouter-py-ut-pycodestyle', \
                        'vrouter-py-ut-flake', 'vrouter-py-ut:coverage']
@@ -51,6 +54,10 @@ env.Append(LIBPATH = ['.', '../sandesh'])
 env.Replace(LIBS = [libvrutil, 'sandesh-c', 'dp_sandesh_c'])
 
 # Build individual utils
+
+vrcli = env.Command("vrcli", vtest, Copy("$TARGET", "$SOURCE"))
+env.Alias('build-vrcli', vrcli)
+
 vif_sources = ['vif.c']
 vif = env.Program(target = 'vif', source = vif_sources)
 
@@ -97,7 +104,7 @@ dpdkconf_sources = ['dpdkconf.c']
 dpdkconf = env.Program(target = 'dpdkconf', source = dpdkconf_sources)
 
 # to make sure that all are built when you do 'scons' @ the top level
-binaries  = [vif, rt, nh, mpls, flow, vrfstats, dropstats, vxlan,
+binaries  = [vrcli, vif, rt, nh, mpls, flow, vrfstats, dropstats, vxlan,
              vrouter, vrmemstats, vrftable, mirror, vrinfo, dpdkinfo, dpdkconf]
 
 qosmap_sources = ['qosmap.c']
