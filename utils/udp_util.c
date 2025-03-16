@@ -23,10 +23,6 @@
 #include <stdint.h>
 #include <net/if.h>
 #include <netinet/in.h>
-#elif defined(__FreeBSD__)
-#include <net/if.h>
-#include <netinet/in.h>
-#include <net/ethernet.h>
 #endif
 
 #include "udp_util.h"

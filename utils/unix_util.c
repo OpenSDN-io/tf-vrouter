@@ -17,8 +17,6 @@
 #include <linux/sockios.h>
 #include <linux/dcbnl.h>
 #include <linux/socket.h>
-#elif defined(__FreeBSD__)
-#include <net/ethernet.h>
 #endif
 #include <netinet/tcp.h>
 #include <sys/un.h>
@@ -118,15 +116,6 @@ nl_socket(struct nl_client *cl, int domain, int type, int protocol)
     if (cl->cl_sock >= 0)
         return -EEXIST;
 
-#if defined(__FreeBSD__)
-    /*
-    * Fake Contrail socket has only one protocol for handling
-    * sandesh protocol, so zero must be passed as a parameter
-    */
-    domain = AF_VENDOR00;
-    type = SOCK_DGRAM;
-    protocol = 0;
-#endif
     cl->cl_sock = socket(domain, type, protocol);
     if (cl->cl_sock < 0)
         return cl->cl_sock;
@@ -1258,15 +1247,6 @@ vrouter_obtain_family_id(struct nl_client *cl)
     msg = (struct genl_ctrl_message *)resp->nl_data;
     nl_set_genl_family_id(cl, msg->family_id);
 
-    return cl->cl_genl_family_id;
-}
-#elif defined(__FreeBSD__)
-int
-vrouter_obtain_family_id(struct nl_client *cl)
-{
-    /* On platforms other than Linux value of family id is not checked,
-       so it is set to FAKE_NETLINK_FAMILY */
-    nl_set_genl_family_id(cl, FAKE_NETLINK_FAMILY);
     return cl->cl_genl_family_id;
 }
 #endif  /* __linux__ */

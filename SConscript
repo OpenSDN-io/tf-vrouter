@@ -3,11 +3,8 @@
 #
 
 import subprocess
-import sys
 import os
 import copy
-import re
-import platform
 
 
 AddOption('--kernel-dir', dest='kernel-dir', action='store',
@@ -152,38 +149,8 @@ def genBuildVersion():
     with open(os.path.join(dp_dir, 'include/vr_buildinfo.h'), 'w') as c_file:
         c_file.write(h_code)
 
-
-if sys.platform.startswith('freebsd'):
-    make_dir = make_dir + '/freebsd'
-    env['ENV']['MAKEOBJDIR'] = make_dir
-
-# XXX Temporary/transitional support for Ubuntu14.04.4 w/ kernel v4.*
-#
-# The logic here has to handle two different invocation models:
-# default 'scons' build model; and build via packager.py build. The
-# first is typical for unit-test builds.
-#
-# The second comes via:
-# - common/debian/Makefile in contrail-packaging, which invokes:
-# - debian/contrail/debian/rules.modules in contrail-packages
-# This approach always uses --kernel-dir, which works for vrouter, but
-# libdpdk still defaults to installed version and thus will fail.
-#
-
 default_kernel_ver = shellCommand("uname -r").strip()
 kernel_build_dir = None
-(PLATFORM, VERSION, EXTRA) = platform.linux_distribution()
-if (PLATFORM.lower() == 'ubuntu' and VERSION.find('14.') == 0):
-    if re.search('^4\.', default_kernel_ver):
-        print("Warn: kernel version %s not supported for vrouter and dpdk" % default_kernel_ver)
-        kernel_build_dir = '/lib/modules/3.13.0-110-generic/build'
-        if os.path.isdir(kernel_build_dir):
-            default_kernel_ver = "3.13.0-110-generic"
-            print("info: libdpdk will be built against kernel version %s" % default_kernel_ver)
-        else:
-            print("*** Error: Cannot find kernel v3.13.0-110, build of vrouter will likely fail")
-            kernel_build_dir = '/lib/modules/%s/build' % default_kernel_ver
-
 kernel_dir = GetOption('kernel-dir')
 if kernel_dir:
     kern_version = shellCommand('cat %s/include/config/kernel.release' % kernel_dir)
@@ -193,231 +160,227 @@ else:
         kernel_dir = kernel_build_dir
 kern_version = kern_version.strip()
 
-if sys.platform != 'darwin':
+install_root = GetOption('install_root')
+if install_root is None:
+    install_root = ''
 
-    install_root = GetOption('install_root')
-    if install_root is None:
-        install_root = ''
+src_root = install_root + '/usr/src/vrouter/'
+env.Replace(SRC_INSTALL_TARGET=src_root)
+env.Install(src_root, ['LICENSE', 'Makefile', 'GPL-2.0.txt'])
+env.Alias('install', src_root)
 
-    src_root = install_root + '/usr/src/vrouter/'
-    env.Replace(SRC_INSTALL_TARGET=src_root)
-    env.Install(src_root, ['LICENSE', 'Makefile', 'GPL-2.0.txt'])
-    env.Alias('install', src_root)
+buildinfo = env.GenerateBuildInfoCCode(
+    target=['vr_buildinfo.c'],
+    source=[], path=dp_dir + 'dp-core')
 
-    buildinfo = env.GenerateBuildInfoCCode(
-        target=['vr_buildinfo.c'],
-        source=[], path=dp_dir + 'dp-core')
+buildversion = genBuildVersion()
 
-    buildversion = genBuildVersion()
+exports = ['VRouterEnv']
+subdirs = [
+    'include',
+    'dp-core',
+    'sandesh',
+    'utils',
+    'host',
+    'linux',
+    'uvrouter',
+]
 
-    exports = ['VRouterEnv']
-    subdirs = [
-        'include',
-        'dp-core',
-        'sandesh',
-        'utils',
-        'host',
-        'linux',
-        'uvrouter',
+skip_dpdk_build = False
+link_dpdk = False
+dpdk_dir = GetOption('dpdk-dir')
+if dpdk_dir:
+    skip_dpdk_build = True
+    link_dpdk = True
+    DPDK_INC_DIR = dpdk_dir + '/include/dpdk'
+    DPDK_LIB_DIR = dpdk_dir + '/lib'
+    dpdk_lib = env.Command('dpdk_lib', None, 'echo "*** Skipping DPDK Build, using provided DPDK directory ***"')
+
+if dpdk_exists and not GetOption('without-dpdk') and not skip_dpdk_build:
+    link_dpdk = True
+    dpdk_src_dir = Dir(DPDK_SRC_DIR).abspath
+    if ADDNL_OPTION and 'enableMellanox' in ADDNL_OPTION:
+        thrd_prt_dir = Dir(THRD_PRT_DIR).abspath
+        mlnx_patch_cmd = 'patch -N ' + dpdk_src_dir + '/config/common_base ' + thrd_prt_dir + '/dpdk_mlnx.patch'
+        os.system(mlnx_patch_cmd)
+
+    # Pass -g and -O flags if present to DPDK
+    DPDK_FLAGS = ' '.join(o for o in env['CCFLAGS'] if ('-g' in o or '-O' in o))
+    env.Append(CCFLAGS='-DPLATFORM_IS_DPDK')
+
+    # Make DPDK
+    dpdk_dst_dir = Dir(DPDK_DST_DIR).abspath
+
+    dpdk_jobs = GetOption('dpdk-jobs')
+
+    make_cmd = 'make' \
+        + ' -j {}'.format(dpdk_jobs) \
+        + ' -C {}'.format(dpdk_src_dir) \
+        + ' EXTRA_CFLAGS="' + DPDK_FLAGS + '"' \
+        + ' ARCH=x86_64' \
+        + ' O={}'.format(dpdk_dst_dir) \
+        + ' '
+
+    # If this var is set, then we need to pass it to make cmd for libdpdk
+    if kernel_build_dir:
+        print("info: Adjusting libdpdk build to use RTE_KERNELDIR=%s" % kernel_build_dir)
+        make_cmd += "RTE_KERNELDIR=%s " % kernel_build_dir
+
+    dpdk_lib = env.Command(
+        'dpdk_lib', None, make_cmd + 'config T=' + DPDK_TARGET +
+        ' && ' + make_cmd +
+        ' && cp ' + dpdk_src_dir + '/usertools/dpdk-devbind.py ' + Dir(env['TOP'] + '/vrouter/dpdk/').abspath)
+
+    if GetOption('clean'):
+        os.system(make_cmd + 'clean')
+
+if link_dpdk:
+    env.Append(DPDK_TARGET = DPDK_TARGET)
+
+    subdirs.append('tests')
+    subdirs.append('dpdk')
+    exports.append('dpdk_lib')
+
+    rte_libs = [
+        '-lrte_ethdev',
+        '-lrte_mempool_ring',
+        '-lrte_bus_pci',
+        '-lrte_pci',
+        '-lrte_bus_vdev',
     ]
 
-    skip_dpdk_build = False
-    link_dpdk = False
-    dpdk_dir = GetOption('dpdk-dir')
-    if dpdk_dir:
-        skip_dpdk_build = True
-        link_dpdk = True
-        DPDK_INC_DIR = dpdk_dir + '/include/dpdk'
-        DPDK_LIB_DIR = dpdk_dir + '/lib'
-        dpdk_lib = env.Command('dpdk_lib', None, 'echo "*** Skipping DPDK Build, using provided DPDK directory ***"')
-
-    if dpdk_exists and not GetOption('without-dpdk') and not skip_dpdk_build:
-        link_dpdk = True
-        dpdk_src_dir = Dir(DPDK_SRC_DIR).abspath
-        if ADDNL_OPTION and 'enableMellanox' in ADDNL_OPTION:
-            thrd_prt_dir = Dir(THRD_PRT_DIR).abspath
-            mlnx_patch_cmd = 'patch -N ' + dpdk_src_dir + '/config/common_base ' + thrd_prt_dir + '/dpdk_mlnx.patch'
-            os.system(mlnx_patch_cmd)
-
-        # Pass -g and -O flags if present to DPDK
-        DPDK_FLAGS = ' '.join(o for o in env['CCFLAGS'] if ('-g' in o or '-O' in o))
-        env.Append(CCFLAGS='-DPLATFORM_IS_DPDK')
-
-        # Make DPDK
-        dpdk_dst_dir = Dir(DPDK_DST_DIR).abspath
-
-        dpdk_jobs = GetOption('dpdk-jobs')
-
-        make_cmd = 'make' \
-            + ' -j {}'.format(dpdk_jobs) \
-            + ' -C {}'.format(dpdk_src_dir) \
-            + ' EXTRA_CFLAGS="' + DPDK_FLAGS + '"' \
-            + ' ARCH=x86_64' \
-            + ' O={}'.format(dpdk_dst_dir) \
-            + ' '
-
-        # If this var is set, then we need to pass it to make cmd for libdpdk
-        if kernel_build_dir:
-            print("info: Adjusting libdpdk build to use RTE_KERNELDIR=%s" % kernel_build_dir)
-            make_cmd += "RTE_KERNELDIR=%s " % kernel_build_dir
-
-        dpdk_lib = env.Command(
-            'dpdk_lib', None, make_cmd + 'config T=' + DPDK_TARGET +
-            ' && ' + make_cmd +
-            ' && cp ' + dpdk_src_dir + '/usertools/dpdk-devbind.py ' + Dir(env['TOP'] + '/vrouter/dpdk/').abspath)
-
-        if GetOption('clean'):
-            os.system(make_cmd + 'clean')
-
-    if link_dpdk:
-        env.Append(DPDK_TARGET = DPDK_TARGET)
-
-        subdirs.append('tests')
-        subdirs.append('dpdk')
-        exports.append('dpdk_lib')
-
-        rte_libs = [
-            '-lrte_ethdev',
-            '-lrte_mempool_ring',
-            '-lrte_bus_pci',
-            '-lrte_pci',
-            '-lrte_bus_vdev',
-        ]
-
-        #
-        # DPDK libraries need to be linked as a whole archive, otherwise some
-        # callbacks and constructors will not be linked in. Also some of the
-        # libraries need to be linked as a group for the cross-reference resolving.
-        #
-        # That is why we pass DPDK libraries as flags to the linker.
-        #
-        # Order is important: from higher level to lower level
-        # The list is from the rte.app.mk file
-        DPDK_LIBS = [
-            '-Wl,--whole-archive',
-            '-lrte_distributor',
-            '-lrte_reorder',
-            '-lrte_kni',
-            '-lrte_pipeline',
-            '-lrte_table',
-            '-lrte_port',
-            '-lrte_timer',
-            '-lrte_hash',
-            '-lrte_net',
-            '-lrte_jobstats',
-            '-lrte_lpm',
-            '-lrte_power',
-            '-lrte_acl',
-            '-lrte_meter',
-            '-lrte_member',
-            '-lrte_sched',
-            '-lm',
-            '-lrt',
-            '-lrte_vhost',
-            '-lrte_cryptodev',
-            '-Wl,--start-group',
-            '-lrte_kvargs',
-            '-lrte_mbuf',
-            '-lrte_ip_frag',
-            rte_libs,
-            '-lrte_mempool',
-            '-lrte_stack',
-            '-lrte_ring',
-            '-lrte_eal',
-            '-lrte_cmdline',
-            '-lrte_cfgfile',
-            "-lrte_eventdev",
-            '-lrte_pmd_bond',
-            '-lrte_pmd_bnxt',
-            '-lrte_bus_vmbus',
-            '-lrte_pmd_ifc',
-            '-lrte_pmd_enic',
-            '-lrte_pmd_i40e',
-            '-lrte_pmd_ixgbe',
-            '-lrte_pmd_ice',
-            '-lrte_pmd_nfp',
-            '-lrte_pmd_e1000',
-            '-lrte_pmd_ring',
-            '-lrte_pmd_af_packet'
-        ]
-        if env['OPT'] == 'coverage':
-            DPDK_LIBS.append('-lgcov')
-
-        if ADDNL_OPTION and 'enableMellanox' in ADDNL_OPTION:
-            DPDK_LIBS.append('-lrte_pmd_mlx5')
-            DPDK_LIBS.append('-libverbs')
-            DPDK_LIBS.append('-lmlx5')
-
-        if ADDNL_OPTION and 'enableN3K' in ADDNL_OPTION:
-            DPDK_LIBS += [
-                '-lrte_pmd_n3k',
-            ]
-            env.Append(CCFLAGS = '-DVR_ENABLE_N3K')
-
-        DPDK_LIBS.append('-lrte_pmd_virtio')
-
-        DPDK_LIBS.append('-Wl,--end-group')
-        DPDK_LIBS.append('-Wl,--no-whole-archive')
-        DPDK_LIBS.append('-Wl,-lnuma')
-
-        env.Append(CPPPATH=DPDK_INC_DIR)
-        env.Append(LIBPATH=DPDK_LIB_DIR)
-        env.Append(DPDK_LINKFLAGS=DPDK_LIBS)
-
-    for sdir in subdirs:
-        env.SConscript(sdir + '/SConscript',
-                       exports=exports,
-                       variant_dir=env['TOP'] + '/vrouter/' + sdir,
-                       duplicate=0)
-
-    make_cmd = 'cd ' + make_dir + ' && make'
-    if kernel_dir:
-        make_cmd += ' KERNELDIR=' + kernel_dir
-    make_cmd += ' SANDESH_HEADER_PATH=' + Dir(env['TOP'] + '/vrouter/').abspath
-    make_cmd += ' SANDESH_SRC_ROOT=' + '../build/kbuild/'
-    make_cmd += ' SANDESH_EXTRA_HEADER_PATH=' + Dir('#src/contrail-common/').abspath
-    vrouter_target = 'vrouter.ko'
-
-    if 'vrouter' in COMMAND_LINE_TARGETS:
-        BUILD_TARGETS.append('vrouter/uvrouter')
-        if dpdk_exists:
-            BUILD_TARGETS.append('vrouter/dpdk')
-        BUILD_TARGETS.append('vrouter/utils')
-
-    kern = env.Command(vrouter_target, None, make_cmd)
-    env.Default(kern)
-    env.AlwaysBuild(kern)
-
-    env.Requires(kern, ['#build/lib/cmocka.lib', '#build/include/cmocka.h'])
-
-    env.Depends(kern, buildinfo)
-    env.Depends(kern, buildversion)
-    env.Depends(kern, env.Install(
-                '#build/kbuild/sandesh/gen-c',
-                env['TOP'] + '/vrouter/sandesh/gen-c/vr_types.c'))
-    sandesh_lib = [
-        'protocol/thrift_binary_protocol.c',
-        'protocol/thrift_protocol.c',
-        'protocol/thrift_xml_protocol.c',
-        'sandesh.c',
-        'transport/thrift_fake_transport.c',
-        'transport/thrift_file_transport.c',
-        'transport/thrift_memory_buffer.c',
+    #
+    # DPDK libraries need to be linked as a whole archive, otherwise some
+    # callbacks and constructors will not be linked in. Also some of the
+    # libraries need to be linked as a group for the cross-reference resolving.
+    #
+    # That is why we pass DPDK libraries as flags to the linker.
+    #
+    # Order is important: from higher level to lower level
+    # The list is from the rte.app.mk file
+    DPDK_LIBS = [
+        '-Wl,--whole-archive',
+        '-lrte_distributor',
+        '-lrte_reorder',
+        '-lrte_kni',
+        '-lrte_pipeline',
+        '-lrte_table',
+        '-lrte_port',
+        '-lrte_timer',
+        '-lrte_hash',
+        '-lrte_net',
+        '-lrte_jobstats',
+        '-lrte_lpm',
+        '-lrte_power',
+        '-lrte_acl',
+        '-lrte_meter',
+        '-lrte_member',
+        '-lrte_sched',
+        '-lm',
+        '-lrt',
+        '-lrte_vhost',
+        '-lrte_cryptodev',
+        '-Wl,--start-group',
+        '-lrte_kvargs',
+        '-lrte_mbuf',
+        '-lrte_ip_frag',
+        rte_libs,
+        '-lrte_mempool',
+        '-lrte_stack',
+        '-lrte_ring',
+        '-lrte_eal',
+        '-lrte_cmdline',
+        '-lrte_cfgfile',
+        "-lrte_eventdev",
+        '-lrte_pmd_bond',
+        '-lrte_pmd_bnxt',
+        '-lrte_bus_vmbus',
+        '-lrte_pmd_ifc',
+        '-lrte_pmd_enic',
+        '-lrte_pmd_i40e',
+        '-lrte_pmd_ixgbe',
+        '-lrte_pmd_ice',
+        '-lrte_pmd_nfp',
+        '-lrte_pmd_e1000',
+        '-lrte_pmd_ring',
+        '-lrte_pmd_af_packet'
     ]
-    for src in sandesh_lib:
-        dirname = os.path.dirname(src)
-        env.Depends(
-            kern,
-            env.Install(
-                '#build/kbuild/sandesh/library/c/' + dirname,
-                env['TOP'] + '/tools/sandesh/library/c/' + src))
 
-    if GetOption('clean') and (not COMMAND_LINE_TARGETS or 'vrouter' in COMMAND_LINE_TARGETS):
-        os.system(make_cmd + ' clean')
+    if ADDNL_OPTION and 'enableMellanox' in ADDNL_OPTION:
+        DPDK_LIBS.append('-lrte_pmd_mlx5')
+        DPDK_LIBS.append('-libverbs')
+        DPDK_LIBS.append('-lmlx5')
 
-    libmod_dir = install_root
-    libmod_dir += '/lib/modules/%s/extra/net/vrouter' % kern_version
-    env.Alias('build-kmodule', env.Install(libmod_dir, kern))
+    if ADDNL_OPTION and 'enableN3K' in ADDNL_OPTION:
+        DPDK_LIBS += [
+            '-lrte_pmd_n3k',
+        ]
+        env.Append(CCFLAGS = '-DVR_ENABLE_N3K')
+
+    DPDK_LIBS.append('-lrte_pmd_virtio')
+
+    DPDK_LIBS.append('-Wl,--end-group')
+    DPDK_LIBS.append('-Wl,--no-whole-archive')
+    DPDK_LIBS.append('-Wl,-lnuma')
+
+    env.Append(CPPPATH=DPDK_INC_DIR)
+    env.Append(LIBPATH=DPDK_LIB_DIR)
+    env.Append(DPDK_LINKFLAGS=DPDK_LIBS)
+
+for sdir in subdirs:
+    env.SConscript(sdir + '/SConscript',
+                    exports=exports,
+                    variant_dir=env['TOP'] + '/vrouter/' + sdir,
+                    duplicate=0)
+
+make_cmd = 'cd ' + make_dir + ' && make'
+if kernel_dir:
+    make_cmd += ' KERNELDIR=' + kernel_dir
+make_cmd += ' SANDESH_HEADER_PATH=' + Dir(env['TOP'] + '/vrouter/').abspath
+make_cmd += ' SANDESH_SRC_ROOT=' + '../build/kbuild/'
+make_cmd += ' SANDESH_EXTRA_HEADER_PATH=' + Dir('#src/contrail-common/').abspath
+vrouter_target = 'vrouter.ko'
+
+if 'vrouter' in COMMAND_LINE_TARGETS:
+    BUILD_TARGETS.append('vrouter/uvrouter')
+    if dpdk_exists:
+        BUILD_TARGETS.append('vrouter/dpdk')
+    BUILD_TARGETS.append('vrouter/utils')
+
+kern = env.Command(vrouter_target, None, make_cmd)
+env.Default(kern)
+env.AlwaysBuild(kern)
+
+env.Requires(kern, ['#build/lib/cmocka.lib', '#build/include/cmocka.h'])
+
+env.Depends(kern, buildinfo)
+env.Depends(kern, buildversion)
+env.Depends(kern, env.Install(
+            '#build/kbuild/sandesh/gen-c',
+            env['TOP'] + '/vrouter/sandesh/gen-c/vr_types.c'))
+sandesh_lib = [
+    'protocol/thrift_binary_protocol.c',
+    'protocol/thrift_protocol.c',
+    'protocol/thrift_xml_protocol.c',
+    'sandesh.c',
+    'transport/thrift_fake_transport.c',
+    'transport/thrift_file_transport.c',
+    'transport/thrift_memory_buffer.c',
+]
+for src in sandesh_lib:
+    dirname = os.path.dirname(src)
+    env.Depends(
+        kern,
+        env.Install(
+            '#build/kbuild/sandesh/library/c/' + dirname,
+            env['TOP'] + '/tools/sandesh/library/c/' + src))
+
+if GetOption('clean') and (not COMMAND_LINE_TARGETS or 'vrouter' in COMMAND_LINE_TARGETS):
+    os.system(make_cmd + ' clean')
+
+libmod_dir = install_root
+libmod_dir += '/lib/modules/%s/extra/net/vrouter' % kern_version
+env.Alias('build-kmodule', env.Install(libmod_dir, kern))
 
 # Local Variables:
 # mode: python

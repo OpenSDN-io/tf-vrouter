@@ -143,11 +143,6 @@ env.Requires(vtest_py_ut, check_wireshark_plugins)
 
 env.Alias('vrouter-py-ut:test', vtest_py_ut)
 
-#Command for running vrouter coverage script
-vtest_py_ut_coverage = env.Command("vtest_py_ut_coverage", [], \
-                                    src_root+"/vrouter/utils/vtest_py/generate_vrouter_coverage.sh")
-env.Alias('vrouter-py-ut:coverage', vtest_py_ut_coverage)
-
 env.Depends(vtest_py_ut_pycodestyle, setup_venv)
 env.Requires(vtest_py_ut_pycodestyle, gen_py_sandesh)
 
