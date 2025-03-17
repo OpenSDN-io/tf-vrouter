@@ -33,10 +33,6 @@
 #include <net/if.h>
 #include <net/ethernet.h>
 #include <netinet/ether.h>
-#elif defined(__FreeBSD__)
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <net/ethernet.h>
 #endif
 
 #include <termios.h>
@@ -1035,47 +1031,6 @@ vhost_create(void)
         if (resp && resp->nl_op)
             printf("%s: %s\n", __func__, strerror(resp->nl_op));
     }
-#elif defined(__FreeBSD__)
-    struct ifreq ifr = { 0 };
-    int s;
-    int errsv;
-
-    s = socket(PF_LOCAL, SOCK_DGRAM, 0);
-    if (s < 0) {
-        ret = s;
-        errsv = errno;
-        fprintf(stderr, "vhost_create: Failed to open socket.\n");
-        goto ending;
-    }
-
-    strncpy(ifr.ifr_name, if_name, sizeof(ifr.ifr_name) - 1);
-
-    ret = ioctl(s, SIOCIFCREATE, &ifr);
-    if (ret < 0) {
-        errsv = errno;
-        fprintf(stderr, "vhost_create: Failed to create interface.\n");
-        goto ending;
-    }
-
-    if (mac_set) {
-        memcpy(ifr.ifr_addr.sa_data, vr_ifmac, ETHER_ADDR_LEN);
-        ifr.ifr_addr.sa_len = ETHER_ADDR_LEN;
-        ifr.ifr_addr.sa_family = AF_LOCAL;
-
-        ret = ioctl(s, SIOCSIFLLADDR, &ifr);
-        if (ret < 0) {
-            errsv = errno;
-            fprintf(stderr, "vhost_create: Failed to set MAC address.\n");
-            goto ending;
-        }
-    }
-
-ending:
-    if (ret < 0)
-        fprintf(stderr, "vhost_create: %s.\n", strerror(errsv));
-
-    if (s >=0)
-        close(s);
 #else
 #error "Unsupported platform"
 #endif

@@ -6,8 +6,6 @@
 #include <vrouter.h>
 #if defined(__linux__)
 #include <stdarg.h>
-#elif defined(__FreeBSD__)
-#include <machine/stdarg.h>
 #endif
 
 struct vr_itbl {

@@ -25,8 +25,6 @@
 #include <linux/rtnetlink.h>
 #include <linux/if_ether.h>
 #include <linux/dcbnl.h>
-#elif defined(__FreeBSD__)
-#include <net/ethernet.h>
 #endif
 
 #include <net/if.h>
@@ -2119,8 +2117,6 @@ vr_send_nexthop_encap_tunnel_add(struct nl_client *cl, unsigned int router_id,
 
 #if defined(__linux__)
     req.nhr_encap_family = ETH_P_ARP;
-#elif defined(__FreeBSD__)
-    req.nhr_encap_family = ETHERTYPE_ARP;
 #endif
 
     if (type == NH_TUNNEL) {

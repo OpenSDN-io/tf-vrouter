@@ -302,14 +302,6 @@ struct vr_ip {
    unsigned char ip_version:4,
                  ip_hl:4;
 #endif
-#elif defined(__KERNEL__) && defined(__FreeBSD__)
-#if BYTE_ORDER == LITTLE_ENDIAN
-   unsigned char ip_hl:4,
-                 ip_version:4;
-#elif BYTE_ORDER == BIG_ENDIAN
-   unsigned char ip_version:4,
-                 ip_hl:4;
-#endif
 #else
 #if (__BYTE_ORDER == __LITTLE_ENDIAN)
    unsigned char ip_hl:4,

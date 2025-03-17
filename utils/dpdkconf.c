@@ -34,10 +34,6 @@
 #include <net/if.h>
 #include <net/ethernet.h>
 #include <netinet/ether.h>
-#elif defined(__FreeBSD__)
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <net/ethernet.h>
 #endif
 
 #include <termios.h>

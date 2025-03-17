@@ -20,8 +20,6 @@
 
 #if defined(__linux__)
 #include <netinet/ether.h>
-#elif defined(__FreeBSD__)
-#include <net/ethernet.h>
 #endif
 
 #include "vr_types.h"

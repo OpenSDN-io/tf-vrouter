@@ -12,12 +12,7 @@ LIB_NAME = libvrouter
 LIB_MAJOR_VERSION = 1
 LIB_MINOR_VERSION = 0.1
 SRC_SANDESH = ../../../sandesh/library/c
-
-ifeq ($(HOST_OS), Darwin)
-SONAME = install_name
-else
 SONAME = soname
-endif
 
 LIB_FLAGS = -shared -Wl,-$(SONAME),$@.so.$(LIB_MAJOR_VERSION)\
 		-o $@.so.$(LIB_MAJOR_VERSION).$(LIB_MINOR_VERSION) -lc\
