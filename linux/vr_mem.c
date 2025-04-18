@@ -21,6 +21,9 @@
 #define MEM_DEV_MINOR_START         0
 #define MEM_DEV_NUM_DEVS            2
 
+void vr_mem_exit(void);
+int vr_mem_init(void);
+
 struct vr_hpage_config {
     void *hcfg_uspace_vmem;
     void *hcfg_mem;
@@ -124,7 +127,10 @@ __vr_huge_page_get(uint64_t uspace_vmem, int npages, int mem_size, int hugepage_
 #else
     down_read(&current->mm->mmap_sem);
 #endif
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,9,0))
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,5,0)) //commit 54d0206
+    spages = get_user_pages(uspace_vmem, npages, FOLL_WRITE, pmem);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4,9,0))
     spages = get_user_pages(uspace_vmem, npages, FOLL_WRITE, pmem, NULL);
 #else
 

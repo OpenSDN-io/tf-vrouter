@@ -18,7 +18,7 @@ struct vr_btable *offload_flows;
 struct vr_btable *offload_tags;
 unsigned int datapath_offloads;
 
-int
+static int
 vr_offloads_interface_add(struct vr_interface *vif)
 {
     if (!vif)
@@ -37,7 +37,7 @@ vr_offloads_interface_add(struct vr_interface *vif)
     return 0;
 }
 
-int
+static int
 vr_offloads_interface_del(struct vr_interface *vif)
 {
     if (!vif)
@@ -65,7 +65,7 @@ vr_offloads_is_offloaded_nexthop(struct vr_nexthop *nh)
         nh->nh_dev);
 }
 
-int
+static int
 vr_offloads_mpls_add(struct vr_nexthop *nh, int label)
 {
     struct vr_offload_tag *otag;
@@ -100,7 +100,7 @@ vr_offloads_mpls_add(struct vr_nexthop *nh, int label)
     return 0;
 }
 
-int
+static int
 vr_offloads_vxlan_add(struct vr_nexthop * nh, int vnid)
 {
     struct vr_offload_tag *otag;
@@ -130,7 +130,7 @@ vr_offloads_vxlan_add(struct vr_nexthop * nh, int vnid)
     return 0;
 }
 
-int
+static int
 vr_offloads_mpls_del(int label)
 {
     struct vr_offload_tag *otag;
@@ -165,7 +165,7 @@ vr_offloads_mpls_del(int label)
     return 0;
 }
 
-int
+static int
 vr_offloads_vxlan_del(int vnid)
 {
     struct vr_offload_tag *otag;
@@ -195,7 +195,7 @@ vr_offloads_vxlan_del(int vnid)
     return 0;
 }
 
-int
+static int
 vr_offloads_flow_del(struct vr_flow_entry * fe)
 {
     struct vr_offload_flow *oflow;
@@ -226,7 +226,7 @@ vr_offloads_flow_del(struct vr_flow_entry * fe)
     return 0;
 }
 
-int
+static int
 vr_offloads_flow_set(struct vr_flow_entry * fe, unsigned int fe_index,
                         struct vr_flow_entry * rfe)
 {

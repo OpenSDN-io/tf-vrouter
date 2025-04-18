@@ -32,7 +32,7 @@ vr_vrf_table_defer_delete(struct vrouter *router, void *arg)
     return;
 }
 
-int
+static int
 __vr_vrf_table_entry_del(struct vrouter *router, unsigned int index)
 {
     struct vr_interface *hbs_l = NULL, *hbs_r = NULL;
@@ -78,7 +78,7 @@ __vr_vrf_table_entry_del(struct vrouter *router, unsigned int index)
     return 0;
 }
 
-int
+static int
 vr_vrf_table_entry_del(vr_vrf_req *req)
 {
     int ret = -EINVAL;
@@ -93,7 +93,7 @@ vr_vrf_table_entry_del(vr_vrf_req *req)
     return ret;
 }
 
-int
+static int
 vr_vrf_table_entry_add(vr_vrf_req *req)
 {
     int ret = 0;

@@ -63,6 +63,8 @@ unsigned int vr_flow_hold_limit = VR_DEF_MAX_FLOW_TABLE_HOLD_COUNT;
 extern short vr_flow_major;
 #endif
 
+void vr_flow_defer_cb(struct vrouter *router, void *arg);
+
 uint32_t vr_hashrnd = 0;
 int hashrnd_inited = 0;
 
@@ -404,7 +406,7 @@ vr_flow_start_modify(struct vrouter *router, struct vr_flow_entry *fe)
 
 
 /* Non-static due to RCU callback pointer comparison in vRouter/DPDK */
-void
+static void
 vr_flow_flush_hold_queue(struct vrouter *router, struct vr_flow_entry *fe,
         struct vr_flow_queue *vfq)
 {
@@ -2972,7 +2974,7 @@ vr_flow_table_data_destroy(vr_flow_table_data *ftable)
     return;
 }
 
-vr_flow_table_data *
+static vr_flow_table_data *
 vr_flow_table_data_get(vr_flow_table_data *ref)
 {
     unsigned int hold_stat_size;

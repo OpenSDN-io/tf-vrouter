@@ -41,6 +41,8 @@ struct vr_hentry_delete_data {
     unsigned short hd_scheduled;
 };
 
+void vr_htable_hentry_scheduled_delete(void *arg);
+
 int
 vr_htable_trav_range(vr_htable_t htable, unsigned int start,
         unsigned int range, htable_trav_cb cb, void *data)
@@ -673,7 +675,7 @@ vr_htable_get_address(vr_htable_t htable, uint64_t offset)
     return vr_btable_get_address(btable, offset);
 }
 
-vr_htable_t
+static vr_htable_t
 __vr_htable_create(struct vrouter *router, unsigned int entries,
         void *htable, unsigned int oentries, void *otable,
         unsigned int entry_size, unsigned int key_size,

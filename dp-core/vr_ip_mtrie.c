@@ -24,6 +24,12 @@ struct vr_vrf_stats *(*vr_inet_vrf_stats)(int, unsigned int);
 
 static struct ip_mtrie *mtrie_alloc_vrf(unsigned int, unsigned int);
 
+void
+mtrie_algo_deinit(struct vr_rtable *rtable, struct rtable_fspec *fs,
+    bool soft_reset);
+int
+mtrie_algo_init(struct vr_rtable *rtable, struct rtable_fspec *fs);
+
 /* mtrie specific, bucket_info for v4 and v6 */
 #define IP4_BKT_LEVELS  (IP4_PREFIX_LEN / IPBUCKET_LEVEL_BITS)
 #define IP6_BKT_LEVELS  (IP6_PREFIX_LEN / IPBUCKET_LEVEL_BITS)
@@ -953,7 +959,7 @@ generate_response:
 /*
  * Common API to do lookup for both nexthop information or void * data
  */
-void *
+static void *
 __mtrie_lookup(struct vr_route_req *rt, struct ip_bucket *bkt, unsigned int level)
 {
     unsigned int i, limit, index;

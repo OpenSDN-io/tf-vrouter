@@ -32,7 +32,7 @@ vr_mirror_defer_delete(struct vrouter *router, void *arg)
     return;
 }
 
-int
+static int
 __vr_mirror_del(struct vrouter *router, unsigned int index)
 {
     struct vr_nexthop *nh;
@@ -69,7 +69,7 @@ __vr_mirror_del(struct vrouter *router, unsigned int index)
     return 0;
 }
 
-int
+static int
 vr_mirror_del(vr_mirror_req *req)
 {
     int ret = -EINVAL;
@@ -84,7 +84,7 @@ vr_mirror_del(vr_mirror_req *req)
     return ret;
 }
 
-int
+static int
 vr_mirror_add(vr_mirror_req *req)
 {
     int ret = 0;

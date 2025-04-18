@@ -15,6 +15,21 @@
 #include "vr_interface.h"
 #include "vr_bridge.h"
 
+struct vr_interface *
+vif_bridge_get_sub_interface(vr_htable_t htable, unsigned short vlan,
+    unsigned char *mac);
+int
+vif_bridge_get_index(struct vr_interface *pvif, struct vr_interface
+    *vif, uint8_t *mac);
+int
+vif_bridge_delete(struct vr_interface *pvif, struct vr_interface *vif,
+    uint8_t *src_mac);
+int
+vif_bridge_add(struct vr_interface *pvif, struct vr_interface *vif,
+    uint8_t *src_mac);
+void vif_bridge_deinit(struct vr_interface *vif);
+int vif_bridge_init(struct vr_interface *vif);
+
 unsigned int vif_bridge_entries = VIF_BRIDGE_ENTRIES;
 unsigned int vif_bridge_oentries = VIF_BRIDGE_OENTRIES;
 
@@ -88,7 +103,7 @@ vif_bridge_free(vr_htable_t htable, vr_hentry_t *hentry,
     return;
 }
 
-struct vif_bridge_entry *
+static struct vif_bridge_entry *
 vif_bridge_alloc(vr_htable_t htable, unsigned short vlan,
         unsigned char *mac)
 {
@@ -146,7 +161,7 @@ vif_bridge_add(struct vr_interface *pvif, struct vr_interface *vif,
     return 0;
 }
 
-vr_hentry_key
+static vr_hentry_key
 vif_bridge_get_key(vr_htable_t table, vr_hentry_t *entry, unsigned int
         *key_size)
 {

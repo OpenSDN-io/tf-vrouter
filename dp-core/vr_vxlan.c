@@ -104,7 +104,7 @@ vr_vxlan_make_req(vr_vxlan_req *req, struct vr_nexthop *nh, unsigned int vnid)
     return;
 }
 
-int
+static int
 vr_vxlan_trav_cb(unsigned int index, void *data, void *udata)
 {
     struct vr_nexthop *nh = (struct vr_nexthop *)data;
@@ -115,7 +115,7 @@ vr_vxlan_trav_cb(unsigned int index, void *data, void *udata)
     return vr_message_dump_object(dumper, VR_VXLAN_OBJECT_ID, &resp);
 }
 
-int
+static int
 vr_vxlan_dump(vr_vxlan_req *req)
 {
     int ret;
@@ -141,7 +141,7 @@ generate_response:
     return 0;
 }
 
-int
+static int
 vr_vxlan_get(vr_vxlan_req *req)
 {
     int ret = 0;
@@ -168,7 +168,7 @@ vr_vxlan_get(vr_vxlan_req *req)
     return 0;
 }
 
-int
+static int
 vr_vxlan_del(vr_vxlan_req *req)
 {
     struct vrouter *router;
@@ -193,7 +193,7 @@ generate_resp:
     return ret;
 }
 
-int
+static int
 vr_vxlan_add(vr_vxlan_req *req)
 {
     struct vrouter *router;

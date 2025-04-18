@@ -323,7 +323,7 @@ vrouter_ops_get(void)
     return req;
 }
 
-void
+static void
 vrouter_ops_get_process(void *s_req)
 {
     int ret = 0;
@@ -435,7 +435,7 @@ generate_response:
  *
  * @param s_req Received request to be processed.
  */
-void
+static void
 vrouter_ops_add_process(void *s_req)
 {
     int i;

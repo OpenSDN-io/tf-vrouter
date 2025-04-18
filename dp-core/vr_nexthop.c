@@ -302,7 +302,7 @@ nh_tunnel_loop_detect_handle(struct vr_packet *pkt, struct vr_nexthop *nh,
     return 0;
 }
 
-struct vr_interface *
+static struct vr_interface *
 nh_underlay_tunnel_vif_selection(struct vr_packet *pkt, struct
     vr_forwarding_md *fmd, struct vr_nexthop *nh, unsigned short *drop_reason)
 {
@@ -351,23 +351,21 @@ nh_resolve(struct vr_packet *pkt, struct vr_nexthop *nh,
             stats->vrf_resolves++;
     }
 
-    if (pkt->vp_if->vif_bridge) {
-        /*
-         * bridge is set only for vhost/physical interface, and this
-         * path will be hit only for packets from vhost, in which case
-         * we already know everything that has to be known i.e. we know
-         * the outgoing device and the mac address (which was already
-         * resolved as part of the arp request from host
-         */
-        pkt_clone = vr_pclone(pkt);
-        if (pkt_clone) {
-            /* xconnect the original pkt */
-            vr_preset(pkt);
-            vif_xconnect(pkt->vp_if, pkt, fmd);
-            /* will trap the packet to agent to create a route */
-            vr_trap(pkt_clone, fmd->fmd_dvrf, AGENT_TRAP_RESOLVE, NULL);
-            return NH_PROCESSING_COMPLETE;
-        }
+    /*
+        * bridge is set only for vhost/physical interface, and this
+        * path will be hit only for packets from vhost, in which case
+        * we already know everything that has to be known i.e. we know
+        * the outgoing device and the mac address (which was already
+        * resolved as part of the arp request from host
+        */
+    pkt_clone = vr_pclone(pkt);
+    if (pkt_clone) {
+        /* xconnect the original pkt */
+        vr_preset(pkt);
+        vif_xconnect(pkt->vp_if, pkt, fmd);
+        /* will trap the packet to agent to create a route */
+        vr_trap(pkt_clone, fmd->fmd_dvrf, AGENT_TRAP_RESOLVE, NULL);
+        return NH_PROCESSING_COMPLETE;
     }
 
     /* will trap the packet to agent to create a route */
@@ -3864,7 +3862,7 @@ nh_encap_add(struct vr_nexthop *nh, vr_nexthop_req *req)
 
     nh->nh_encap_family = req->nhr_encap_family;
     nh->nh_encap_len = req->nhr_encap_size;
-    if (nh->nh_encap_len && nh->nh_data) {
+    if (nh->nh_encap_len) {
         memcpy(nh->nh_data, req->nhr_encap, nh->nh_encap_len);
     }
 

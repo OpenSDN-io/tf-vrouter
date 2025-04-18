@@ -19,6 +19,10 @@
 #include <linux/netfilter.h>
 #include <linux/netfilter_ipv4.h>
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,5,0)) //commit d457a0e
+#include <net/gso.h>
+#endif
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39))
 #include <linux/if_bridge.h>
 #include <linux/openvswitch.h>
@@ -62,8 +66,12 @@ int vr_nf_hook_init(void);
 void vr_nf_hook_exit(void);
 
 #if ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
-        defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
-        RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+         defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
+         RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+unsigned int vr_nf_hook(void *priv,
+                        struct sk_buff *skb,
+                        const struct nf_hook_state *state);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4,4,0)) //commit 06198b3
 unsigned int vr_nf_hook(void *priv,
                         struct sk_buff *skb,
                         const struct nf_hook_state *state);
@@ -83,6 +91,18 @@ unsigned int _vr_nf_hook(unsigned int hooknum,
 
 extern volatile bool agent_alive;
 static struct cpumask noht_cpumask[VR_MAX_CPUS];
+
+int linux_to_vr(struct vr_interface *vif, struct sk_buff *skb);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
+rx_handler_result_t
+linux_rx_handler(struct sk_buff **pskb);
+#endif
+int lh_gro_process(struct vr_packet *pkt, struct vr_interface *vif,
+    bool l2_pkt);
+void vr_host_vif_init(struct vrouter *router);
+void vr_host_interface_exit(void);
+struct vr_host_interface_ops *vr_host_interface_init(void);
+
 
 /*
  * vr_l3mh_loip - Loopback IP for L3 Multihoming.
@@ -136,7 +156,7 @@ static struct net_device_ops pkt_rps_dev_ops;
  * vr_skb_set_rxhash - set the rxhash on a skb if the kernel version
  * allows it.
  */
-void
+static void
 vr_skb_set_rxhash(struct sk_buff *skb, __u32 val)
 {
 #if (LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,32))
@@ -160,7 +180,7 @@ vr_skb_set_rxhash(struct sk_buff *skb, __u32 val)
  * vr_skb_get_rxhash - get the rxhash on a skb if the kernel version
  * allows it.
  */
-__u32
+static __u32
 vr_skb_get_rxhash(struct sk_buff *skb)
 {
 #if (LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,32))
@@ -701,7 +721,7 @@ linux_get_rxq(struct sk_buff *skb, u16 *rxq, unsigned int curr_cpu,
  * NAPI event on the NAPI structure of the vif.
  *
  */
-void
+static void
 linux_enqueue_pkt_for_gro(struct sk_buff *skb, struct vr_interface *vif,
                           bool l2_pkt)
 {
@@ -1258,9 +1278,12 @@ linux_rx_handler(struct sk_buff **pskb)
 
     if (dev->type == ARPHRD_ETHER) {
         skb_push(skb, skb->mac_len);
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(5,0,0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,2,0)) //commit 354259f
         if (skb_vlan_tag_present(skb)) {
-            skb->vlan_present = 0;
+            skb->vlan_all = 0;
+#elif (LINUX_VERSION_CODE > KERNEL_VERSION(5,0,0))
+         if (skb_vlan_tag_present(skb)) {
+             skb->vlan_present = 0;
 #else
         if (skb->vlan_tci & VLAN_TAG_PRESENT) {
 #endif
@@ -1856,10 +1879,12 @@ linux_if_add(struct vr_interface *vif)
 
     if (vif_is_virtual(vif)) {
         skb_queue_head_init(&vif->vr_skb_inputq);
-#if ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
-        defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
-        RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,1,0)) //commit b48b89f
         netif_napi_add(pkt_gro_dev, &vif->vr_napi, vr_napi_poll);
+#elif ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
+         defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
+         RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+         netif_napi_add(pkt_gro_dev, &vif->vr_napi, vr_napi_poll);
 #else
         netif_napi_add(pkt_gro_dev, &vif->vr_napi, vr_napi_poll, 64);
 #endif
@@ -1867,7 +1892,9 @@ linux_if_add(struct vr_interface *vif)
 
         /* Lets enable for L2 as well */
         skb_queue_head_init(&vif->vr_skb_l2_inputq);
-#if ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,1,0))
+        netif_napi_add(pkt_l2_gro_dev, &vif->vr_l2_napi, vr_napi_poll);
+#elif ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
         defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
         RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
         netif_napi_add(pkt_l2_gro_dev, &vif->vr_l2_napi, vr_napi_poll);
@@ -1943,8 +1970,16 @@ pkt_gro_dev_setup(struct net_device *dev)
      * Initializing the interfaces with basic parameters to setup address
      * families.
      */
-    random_ether_addr(dev->dev_addr);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,16,0)) //commit ba530fe
+    char tmp_dev_addr[ETH_ALEN];
+    eth_random_addr(tmp_dev_addr);
+    dev_addr_mod(dev, 0, tmp_dev_addr, ETH_ALEN);
     dev->addr_len = ETH_ALEN;
+#else
+     random_ether_addr(dev->dev_addr);
+     dev->addr_len = ETH_ALEN;
+#endif
+
 
     /*
      * The hard header length is used by the GRO code to compare the
@@ -1986,8 +2021,15 @@ pkt_rps_dev_setup(struct net_device *dev)
      * Initializing the interfaces with basic parameters to setup address
      * families.
      */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,16,0)) //commit ba530fe
+    char tmp_dev_addr[ETH_ALEN];
+    eth_random_addr(tmp_dev_addr);
+    dev_addr_mod(dev, 0, tmp_dev_addr, ETH_ALEN);
+    dev->addr_len = ETH_ALEN;
+#else
     random_ether_addr(dev->dev_addr);
     dev->addr_len = ETH_ALEN;
+#endif
 
     dev->hard_header_len = ETH_HLEN;
 
@@ -2049,7 +2091,7 @@ linux_pkt_dev_init(char *name, void (*setup)(struct net_device *),
 }
 
 #ifdef CONFIG_RPS
-int
+static int
 lh_rps_process(struct vr_packet *pkt)
 {
     u16 rxq;
@@ -2111,7 +2153,6 @@ lh_rps_process(struct vr_packet *pkt)
     return 0;
 }
 #endif
-
 
 int
 lh_gro_process(struct vr_packet *pkt, struct vr_interface *vif, bool l2_pkt)
@@ -2685,9 +2726,17 @@ vr_host_interface_init(void)
 }
 
 
+
 #if ((LINUX_VERSION_CODE == KERNEL_VERSION(5,14,0)) && \
-        defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
-        RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+         defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
+         RHEL_MAJOR == 9 && RHEL_MINOR >= 2)
+unsigned int vr_nf_hook(void *priv,
+                        struct sk_buff *skb,
+                        const struct nf_hook_state *state)
+{
+    return _vr_nf_hook(0, skb, NULL, NULL, NULL);
+}
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4,4,0))
 unsigned int vr_nf_hook(void *priv,
                         struct sk_buff *skb,
                         const struct nf_hook_state *state)

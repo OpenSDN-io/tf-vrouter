@@ -31,6 +31,14 @@ struct vr_linux_fragment_queue {
 struct vr_linux_fragment_queue *vr_lfq_pcpu_queues;
 
 void
+lh_fragment_sync_assemble(struct vr_fragment_queue_element *vfqe);
+int
+lh_enqueue_to_assembler(struct vrouter *router, struct vr_packet *pkt,
+    struct vr_forwarding_md *fmd);
+void vr_assembler_exit(void);
+int vr_assembler_init(void);
+
+void
 lh_fragment_sync_assemble(struct vr_fragment_queue_element *vfqe)
 {
     uint32_t hash, index;

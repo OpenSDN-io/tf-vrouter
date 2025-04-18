@@ -49,7 +49,7 @@ __vrouter_set_label(struct vrouter *router, unsigned int label,
     return 0;
 }
 
-int
+static int
 __vr_mpls_del(struct vrouter *router, unsigned int label)
 {
     struct vr_nexthop *nh;
@@ -67,7 +67,7 @@ __vr_mpls_del(struct vrouter *router, unsigned int label)
     return __vrouter_set_label(router, label, NULL);
 }
 
-int
+static int
 vr_mpls_del(vr_mpls_req *req)
 {
     int ret = 0;

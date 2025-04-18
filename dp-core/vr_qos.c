@@ -470,7 +470,7 @@ vr_qos_map_req_process(void *s_req)
     return;
 }
 
-struct vr_forwarding_class *
+static struct vr_forwarding_class *
 vr_fc_map_get_fc(struct vrouter *router, unsigned int i)
 {
     if (i >= vr_fc_map_entries)

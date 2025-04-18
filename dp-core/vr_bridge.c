@@ -70,7 +70,7 @@ vr_bridge_table_size(struct vrouter *router)
     return (VR_BRIDGE_TABLE_SIZE + VR_BRIDGE_OFLOW_TABLE_SIZE);
 }
 
-bool
+static bool
 vr_unknown_uc_flood(struct vr_interface *ingress_vif,
         struct vr_nexthop *ingress_nh)
 {
@@ -388,7 +388,7 @@ vr_bridge_route_flags(unsigned int vrf_id, unsigned char *mac)
     return 0;
 }
 
-int
+static int
 vr_bridge_set_route_flags(struct vr_bridge_entry *be, unsigned short flags)
 {
     unsigned short be_flags, be_flags_old;
@@ -541,7 +541,7 @@ generate_response:
     return 0;
 }
 
-vr_hentry_key
+static vr_hentry_key
 bridge_entry_key(vr_htable_t table, vr_hentry_t *entry, unsigned int
         *key_len)
 {

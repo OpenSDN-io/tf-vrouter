@@ -73,18 +73,18 @@ extern void lh_fragment_sync_assemble(struct vr_fragment_queue_element *);
 extern int vr_assembler_init(void);
 extern void vr_assembler_exit(void);
 
-struct work_arg {
-    struct work_struct wa_work;
-    void (*fn)(void *);
-    void *wa_arg;
-};
-
 struct rcu_cb_data {
     struct rcu_head rcd_rcu;
     vr_defer_cb rcd_user_cb;
     struct vrouter *rcd_router;
     unsigned char rcd_user_data[0];
 };
+
+extern int vr_allocate_default_wq(void);
+extern void vr_destroy_default_wq(void);
+extern int lh_schedule_work(unsigned int cpu,
+    void (*fn)(void *), void *arg);
+extern void lh_soft_reset(struct vrouter *router);
 
 extern int vrouter_init(void);
 extern void vrouter_exit(bool);
@@ -97,6 +97,14 @@ extern void vr_free_stats(unsigned int);
 
 extern void vhost_exit(void);
 extern int lh_gro_process(struct vr_packet *, struct vr_interface *, bool);
+
+void lh_pfree_skb(struct sk_buff *skb, struct vr_interface *vif,
+    unsigned short reason);
+struct host_os *vrouter_get_host(void);
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6,4,0)) //commit 0199849
+#define HAVE_REGISTER_SYSCTL_PATHS
+#endif
 
 static void lh_reset_skb_fields(struct vr_packet *pkt);
 static unsigned int lh_get_cpu(void);
@@ -217,13 +225,13 @@ lh_page_free(void *address, unsigned int size)
     return;
 }
 
-uint64_t
+static uint64_t
 lh_vtop(void *address)
 {
     return (uint64_t)(virt_to_phys(address));
 }
 
-struct vr_packet *
+static struct vr_packet *
 lh_palloc(unsigned int size)
 {
     struct sk_buff *skb;
@@ -466,43 +474,6 @@ lh_get_mono_time(uint64_t *sec, uint64_t *nsec)
     *nsec = t.tv_nsec;
 
     return;
-}
-
-static void
-lh_work(struct work_struct *work)
-{
-    struct work_arg *wa = container_of(work, struct work_arg, wa_work);
-
-    rcu_read_lock();
-    wa->fn(wa->wa_arg);
-    rcu_read_unlock();
-    kfree(wa);
-
-    return;
-}
-
-static int
-lh_schedule_work(unsigned int cpu, void (*fn)(void *), void *arg)
-{
-    unsigned int alloc_flag;
-    struct work_arg *wa;
-
-    if (in_softirq()) {
-        alloc_flag = GFP_ATOMIC;
-    } else {
-        alloc_flag = GFP_KERNEL;
-    }
-
-    wa = kzalloc(sizeof(*wa), alloc_flag);
-    if (!wa)
-        return -ENOMEM;
-
-    wa->fn = fn;
-    wa->wa_arg = arg;
-    INIT_WORK(&wa->wa_work, lh_work);
-    schedule_work_on(cpu, &wa->wa_work);
-
-    return 0;
 }
 
 static void
@@ -1130,6 +1101,8 @@ lh_pull_inner_headers_fast_udp(struct vr_packet *pkt, int
     va = vr_kmap_atomic(skb_frag_page(frag));
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,4,0))
     va += frag->page_offset;
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(6,9,0)) //commit 21d2e6737c97
+    va += frag->offset;
 #else
     va += frag->bv_offset;
 #endif
@@ -1171,6 +1144,8 @@ lh_pull_inner_headers_fast_udp(struct vr_packet *pkt, int
     skb_frag_size_sub(frag, pull_len);
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,4,0))
     frag->page_offset += pull_len;
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(6,9,0)) //commit 21d2e6737c97
+    frag->offset += pull_len;
 #else
     frag->bv_offset += pull_len;
 #endif
@@ -1383,6 +1358,8 @@ lh_pull_inner_headers_fast_gre(struct vr_packet *pkt, int
     va = vr_kmap_atomic(skb_frag_page(frag));
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,4,0))
     va += frag->page_offset;
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(6,9,0)) //commit 21d2e6737c97
+    va += frag->offset;
 #else
     va += frag->bv_offset;
 #endif
@@ -1449,6 +1426,8 @@ lh_pull_inner_headers_fast_gre(struct vr_packet *pkt, int
     skb_frag_size_sub(frag, pull_len);
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5,4,0))
     frag->page_offset += pull_len;
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(6,9,0)) //commit 21d2e6737c97
+    frag->offset += pull_len;
 #else
     frag->bv_offset += pull_len;
 #endif
@@ -2262,17 +2241,7 @@ lh_get_enabled_log_types(int *size)
 {
    /* TODO: Implement similarly to the DPDK vRouter */
 
-   size = 0;
    return NULL;
-}
-
-static void
-lh_soft_reset(struct vrouter *router)
-{
-    flush_scheduled_work();
-    rcu_barrier();
-
-    return;
 }
 
 static void
@@ -2456,12 +2425,16 @@ init_fail:
 /*
  * sysctls to control vrouter functionality and for debugging
  */
+#ifdef HAVE_REGISTER_SYSCTL_PATHS
 static struct ctl_path vrouter_path[] =
 {
     {.procname = "net", },
     {.procname = "vrouter", },
     { }
 };
+#else
+static const char* vrouter_path = "net/vrouter";
+#endif
 
 static struct ctl_table vrouter_table[] =
 {
@@ -2584,7 +2557,10 @@ static struct ctl_table vrouter_table[] =
 	.mode           = 0644,
 	.proc_handler   = proc_dointvec,
     },
-    {}
+// last empty element is not needed on new kernels
+#ifdef HAVE_REGISTER_SYSCTL_PATHS
+    {},
+#endif
 };
 
 struct ctl_table_header *vr_sysctl_header = NULL;
@@ -2604,7 +2580,11 @@ static void
 vr_sysctl_init(void)
 {
     if (vr_sysctl_header == NULL) {
+#ifdef HAVE_REGISTER_SYSCTL_PATHS
         vr_sysctl_header = register_sysctl_paths(vrouter_path, vrouter_table);
+#else
+        vr_sysctl_header = register_sysctl(vrouter_path, vrouter_table);
+#endif
         if (vr_sysctl_header == NULL) {
             printk("vrouter sysctl registration failed\n");
         }
@@ -2622,6 +2602,7 @@ vrouter_linux_exit(void)
     vr_mem_exit();
     vrouter_exit(false);
     vr_huge_pages_exit();
+    vr_destroy_default_wq();
     return;
 }
 
@@ -2669,6 +2650,10 @@ vrouter_linux_init(void)
     }
 
     ret = vr_perfq_check(vr_num_cpus);
+    if (ret)
+        return -1;
+
+    ret = vr_allocate_default_wq();
     if (ret)
         return -1;
 

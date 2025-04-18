@@ -43,6 +43,13 @@ extern int linux_to_vr(struct vr_interface *, struct sk_buff *);
 extern rx_handler_result_t linux_rx_handler(struct sk_buff **);
 #endif
 
+unsigned int vhost_get_ip(struct vr_interface *vif);
+rx_handler_result_t vhost_rx_handler(struct sk_buff **pskb);
+void vhost_if_del(struct net_device *dev);
+void vhost_if_add(struct vr_interface *vif);
+void vhost_if_del_phys(struct net_device *dev);
+void vhost_exit(void);
+
 static bool vhost_drv_inited;
 
 static void vhost_ethtool_get_info(struct net_device *netdev,
@@ -113,7 +120,12 @@ vhost_dev_set_mac_address(struct net_device *dev, void *addr)
     if (!is_valid_ether_addr(mac->sa_data))
         return -EADDRNOTAVAIL;
 
-    memcpy(dev->dev_addr, mac->sa_data, ETH_ALEN);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,17,0)) //since commit adeef3e
+     memcpy(dev->dev_addr, mac->sa_data, ETH_ALEN);
+#else
+    dev_addr_mod(dev, 0, addr, ETH_ALEN);
+#endif
+
 
     return 0;
 }
@@ -152,7 +164,7 @@ vhost_rx_handler(struct sk_buff **pskb)
 #endif
 
 
-void
+static void
 vhost_del_tap_phys(struct net_device *pdev)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
@@ -171,7 +183,7 @@ vhost_del_tap_phys(struct net_device *pdev)
  * handler tap, the logic is handled in linux_rx_handler, albeit in an
  * inefficient way (but works :)
  */
-void
+static void
 vhost_tap_phys(struct net_device *vdev, struct net_device *pdev)
 {
     struct vhost_priv *vp;
@@ -443,7 +455,7 @@ vhost_xconnect(void)
     return;
 }
 
-netdev_tx_t
+static netdev_tx_t
 vhost_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 {
     struct vhost_priv *vp;
@@ -483,14 +495,22 @@ static struct net_device_ops vhost_dev_ops = {
     .ndo_set_mac_address    =       vhost_dev_set_mac_address,
 };
 
-void
+static void
 vhost_setup(struct net_device *dev)
 {
     struct vhost_priv *vp = netdev_priv(dev);
 
     /* follow the standard steps */
-    random_ether_addr(dev->dev_addr);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,16,0)) //commit ba530fe
+     random_ether_addr(dev->dev_addr);
+#else
+    char tmp_dev_addr[ETH_ALEN];
+    eth_random_addr(tmp_dev_addr);
+    dev_addr_mod(dev, 0, tmp_dev_addr, ETH_ALEN);
+#endif
+
     ether_setup(dev);
+
 #if ((defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
                (RHEL_MAJOR == 7) && (RHEL_MINOR >= 5)))
 #ifdef ETH_MAX_MTU

@@ -1031,7 +1031,7 @@ vhost_drv_add(struct vr_interface *vif,
      * that vhost is functional
      */
     for (i = 0; i < VR_MAX_PHY_INF; i++) {
-        if (vif->vif_bridge && vif->vif_bridge[i]) {
+        if (vif->vif_bridge[i]) {
             ret = hif_ops->hif_add_tap(vif->vif_bridge[i], vifr);
             if (ret)
                 return ret;
@@ -3939,7 +3939,7 @@ vif_vrf_table_set(struct vr_interface *vif, unsigned int vlan,
     return 0;
 }
 
-unsigned int
+static unsigned int
 vif_fat_flow_get_proto_index(uint8_t proto)
 {
     unsigned int proto_index = VIF_FAT_FLOW_NOPROTO_INDEX;
@@ -3964,63 +3964,6 @@ vif_fat_flow_get_proto_index(uint8_t proto)
     return proto_index;
 }
 
-static uint8_t vif_fat_flow_mem_zero[VIF_FAT_FLOW_BITMAP_BYTES];
-
-static void
-__vif_fat_flow_free_defer_cb(struct vrouter *router, void *data)
-{
-    struct vr_defer_data *vdd = (struct vr_defer_data *)data;
-
-    if (!vdd || !vdd->vdd_data)
-        return;
-
-    vr_free(vdd->vdd_data, VR_INTERFACE_FAT_FLOW_CONFIG_OBJECT);
-    return;
-}
-
-void
-__vif_fat_flow_try_free(struct vr_interface *vif, unsigned int proto_index,
-        unsigned int port_row)
-{
-    uint8_t *mem_column, **mem_row;
-    int i;
-    struct vr_defer_data *vdd_row, *vdd_column;
-
-    mem_row = vif->vif_fat_flow_no_prefix_rules[proto_index];
-    if (!mem_row)
-        return;
-    mem_column = mem_row[port_row];
-
-    if (!memcmp(mem_column, vif_fat_flow_mem_zero,
-                sizeof(vif_fat_flow_mem_zero))) {
-        vdd_column = vr_get_defer_data(sizeof(*vdd_column));
-        if (!vdd_column)
-            return;
-
-        vif->vif_fat_flow_no_prefix_rules[proto_index][port_row] = NULL;
-        vdd_column->vdd_data = (void *)mem_column;
-        vr_defer(vif->vif_router, __vif_fat_flow_free_defer_cb, vdd_column);
-
-        for (i = 0; i < VIF_FAT_FLOW_NUM_BITMAPS; i++) {
-            if (vif->vif_fat_flow_no_prefix_rules[proto_index][i])
-                return;
-        }
-
-        vdd_row = vr_get_defer_data(sizeof(*vdd_row));
-        if (!vdd_row)
-            return;
-
-        vif->vif_fat_flow_no_prefix_rules[proto_index] = NULL;
-        vdd_row->vdd_data = (void *)mem_row;
-        vr_defer(vif->vif_router, __vif_fat_flow_free_defer_cb, vdd_row);
-
-
-        return;
-    }
-
-    return;
-}
-
 static void
 vif_fat_flow_free(uint8_t  **mem)
 {
@@ -4039,40 +3982,6 @@ vif_fat_flow_free(uint8_t  **mem)
     vr_free(mem, VR_INTERFACE_FAT_FLOW_CONFIG_OBJECT);
     return;
 }
-
-int
-__vif_fat_flow_delete(struct vr_interface *vif, unsigned int proto_index,
-        uint16_t port)
-{
-    unsigned int port_row, port_word, port_bit;
-
-    if (!vif->vif_fat_flow_no_prefix_rules[proto_index])
-        return -EINVAL;
-
-    port_row = port / VIF_FAT_FLOW_PORTS_PER_BITMAP;
-    port_word = ((port % VIF_FAT_FLOW_PORTS_PER_BITMAP) * 2)  / (sizeof(uint8_t) * 8);
-    port_bit =  ((port % VIF_FAT_FLOW_PORTS_PER_BITMAP) * 2) % (sizeof(uint8_t) * 8);
-
-    if (!vif->vif_fat_flow_no_prefix_rules[proto_index][port_row])
-        return -EINVAL;
-
-    vif->vif_fat_flow_no_prefix_rules[proto_index][port_row][port_word] &=
-        ~(VIF_FAT_FLOW_DATA_MASK << port_bit);
-
-    __vif_fat_flow_try_free(vif, proto_index, port_row);
-
-    return 0;
-}
-
-int
-vif_fat_flow_delete(struct vr_interface *vif, uint8_t proto, uint16_t port)
-{
-    unsigned int proto_index;
-
-    proto_index = vif_fat_flow_get_proto_index(proto);
-    return __vif_fat_flow_delete(vif, proto_index, port);
-}
-
 
 static int
 __vif_fat_flow_add_no_prefix_rule(uint8_t **no_prefix_rules[VIF_FAT_FLOW_MAXPROTO_INDEX],

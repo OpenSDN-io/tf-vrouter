@@ -5,8 +5,16 @@
 #include <vr_os.h>
 #include <vrouter.h>
 #if defined(__linux__)
+#if (defined(LINUX_VERSION_CODE) && defined(KERNEL_VERSION))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)) // commit c0891ac
+#include <linux/stdarg.h>
+#else
 #include <stdarg.h>
-#endif
+#endif // KERNEL_VERSION(5,15,0)
+#else
+#include <stdarg.h>
+#endif // defined(LINUX_VERSION_CODE)
+#endif // defined(__linux__)
 
 struct vr_itbl {
     unsigned int stride_cnt;

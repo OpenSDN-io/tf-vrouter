@@ -15,6 +15,13 @@ void vr_stats_exit(struct vrouter *, bool);
 int vr_stats_init(struct vrouter *);
 int vr_pkt_drop_log_init(struct vrouter *);
 void vr_pkt_drop_log_exit(struct vrouter *router);
+void
+vr_drop_stats_get_vif_stats(vr_drop_stats_req *response,
+    struct vr_interface *vif);
+void
+vr_free_stats(unsigned int object);
+void
+vr_malloc_stats(unsigned int size, unsigned int object);
 
 static void
 vr_drop_stats_make_response(vr_drop_stats_req *response, uint64_t *stats)

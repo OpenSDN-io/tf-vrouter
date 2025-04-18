@@ -20,6 +20,9 @@
 #include "vr_response.h"
 #include "vrouter.h"
 
+void vr_genetlink_exit(void);
+int vr_genetlink_init(void);
+
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,10,0)) || \
     (defined(RHEL_MAJOR) && (RHEL_MAJOR >= 7) && (RHEL_MINOR >= 5))
 #define GENL_ID_GENERATE 0
@@ -27,11 +30,20 @@
 static int netlink_trans_request(struct sk_buff *, struct genl_info *);
 extern int vr_genetlink_group_id;
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,1,0))  //commit 4fa8655
+static struct nla_policy vrouter_policy[NL_ATTR_MAX] = {
+    [NL_ATTR_VR_MESSAGE_PROTOCOL] = {.type = NLA_BINARY, .len = 0},
+};
+#endif
+
 static struct genl_ops vrouter_genl_ops[] = {
     {
         .cmd        =   SANDESH_REQUEST,
         .doit       =   netlink_trans_request,
         .flags      =   GENL_ADMIN_PERM,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,1,0)) //commit 4fa8655
+        .policy     =   vrouter_policy,
+#endif
     },
 };
 
@@ -106,7 +118,8 @@ netlink_trans_request(struct sk_buff *in_skb, struct genl_info *info)
     int ret;
     unsigned int len;
     uint32_t multi_flag;
-    struct nlmsghdr *rep, *nlh = info->nlhdr;
+    struct nlmsghdr *rep;
+    const struct nlmsghdr *nlh = info->nlhdr;
     struct genlmsghdr *genlh;
     struct nlattr **aap = info->attrs;
     struct nlattr *nla;

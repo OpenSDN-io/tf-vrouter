@@ -538,7 +538,7 @@ vr_fragment_assemble_queue(struct vr_fragment_queue *vfq)
     }
 }
 
-uint32_t
+static uint32_t
 __vr_fragment_get_hash(unsigned int vrf, uint64_t sip_u, uint64_t sip_l,
         uint64_t dip_u, uint64_t dip_l, uint32_t id, unsigned short custom)
 {

@@ -20,6 +20,18 @@ static unsigned short vr_ip_id;
 extern struct vr_vrf_stats *(*vr_inet_vrf_stats)(unsigned short, unsigned int);
 extern struct vr_nexthop *vr_inet6_ip_lookup(unsigned short, uint8_t *);
 
+struct vr_nexthop *
+vr_inet_ip_lookup(unsigned short vrf, uint32_t ip);
+struct vr_nexthop *
+vr_inet_src_lookup(unsigned short vrf, struct vr_packet *pkt);
+bool
+vr_has_to_fragment(struct vr_interface *vif, struct vr_packet *pkt,
+    unsigned int tun_len);
+unsigned int
+vr_inet_route_flags(unsigned int vrf, unsigned int ip);
+l4_pkt_type_t
+vr_ip_well_known_packet(struct vr_packet *pkt);
+
 unsigned short
 vr_generate_unique_ip_id()
 {
@@ -305,7 +317,7 @@ vr_forward(struct vrouter *router, struct vr_packet *pkt,
     return nh_output(pkt, nh, fmd);
 }
 
-unsigned int
+static unsigned int
 vr_icmp_input(struct vrouter *router, struct vr_packet *pkt,
         struct vr_forwarding_md *fmd)
 {
@@ -365,7 +377,7 @@ vr_icmp_input(struct vrouter *router, struct vr_packet *pkt,
  * port is for MPLS over UDP or VXLAN, decap the packet and forward the inner
  * packet. Returns 1 if the packet was not handled, 0 otherwise.
  */
-unsigned int
+static unsigned int
 vr_udp_input(struct vrouter *router, struct vr_packet *pkt,
              struct vr_forwarding_md *fmd)
 {
@@ -434,7 +446,7 @@ next_encap:
     return 0;
 }
 
-unsigned int
+static unsigned int
 vr_gre_input(struct vrouter *router, struct vr_packet *pkt,
         struct vr_forwarding_md *fmd)
 {

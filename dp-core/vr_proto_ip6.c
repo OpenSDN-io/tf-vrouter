@@ -14,6 +14,12 @@
 #include <vr_bridge.h>
 #include <vr_fragment.h>
 
+struct vr_nexthop *
+vr_inet6_ip_lookup(unsigned short vrf, uint8_t *ip6);
+l4_pkt_type_t
+vr_ip6_well_known_packet(struct vr_packet *pkt);
+
+
 static bool
 vr_ip6_fragment_tail(struct vr_ip6 *ip6)
 {
@@ -579,7 +585,7 @@ vr_ip6_input(struct vrouter *router, struct vr_packet *pkt,
     return vr_forward(router, pkt, fmd);
 }
 
-void
+static void
 vr_neighbor_proxy(struct vr_packet *pkt, struct vr_forwarding_md *fmd,
         unsigned char *dmac)
 {
@@ -789,36 +795,6 @@ vr_neighbor_input(struct vr_packet *pkt, struct vr_forwarding_md *fmd,
         pkt_push(pkt, pull_len);
 
     return handled;
-}
-
-bool
-vr_ip6_dhcp_packet(struct vr_packet *pkt)
-{
-    unsigned char *data = pkt_data(pkt);
-    struct vr_ip6 *ip6;
-    struct vr_udp *udph = NULL;
-
-    if ((pkt->vp_type != VP_TYPE_IP6) ||
-         (!(pkt->vp_flags & VP_FLAG_MULTICAST)))
-        return false;
-
-    ip6 = (struct vr_ip6 *)data;
-
-    if (vr_v6_prefix_is_ll(ip6->ip6_dst))
-        return false;
-
-    /* 0xFF02 is the multicast address used for NDP, DHCPv6 etc */
-    if (ip6->ip6_dst[0] == 0xFF && ip6->ip6_dst[1] == 0x02) {
-        /*
-         * Bridge neighbor solicit for link-local addresses
-         */
-        if (ip6->ip6_nxt == VR_IP_PROTO_UDP)
-            udph = (struct vr_udp *)((char *)ip6 + sizeof(struct vr_ip6));
-        if (udph && (udph->udp_sport == htons(VR_DHCP6_SRC_PORT)))
-            return true;
-    }
-
-    return false;
 }
 
 l4_pkt_type_t
