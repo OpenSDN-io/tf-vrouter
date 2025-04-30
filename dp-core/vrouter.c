@@ -186,7 +186,6 @@ int vr_to_vm_mss_adj = 1;   /* adjust TCP MSS on packet sent to VM */
  * above 3 cores are not used by vrouter for RX processing.
  */
 #if defined(__linux__)
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
 
 int vr_perfr1 = 0;   /* RPS after pulling inner headers */
 int vr_perfr2 = 1;   /* RPS after GRO on pkt1 interface */
@@ -195,27 +194,6 @@ int vr_perfp = 1;    /* pull inner headers, faster version */
 
 int vr_use_linux_br = 0; /* nop if netdev_rx_handler_register() is used */
 
-#else
-
-#if defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
-           (RHEL_MAJOR == 6) && (RHEL_MINOR >= 4)
-
-int vr_perfr1 = 0;
-int vr_perfr2 = 1;
-int vr_perfr3 = 1;
-int vr_perfp = 1;
-int vr_use_linux_br = 0; /* Centos 6.4 and higher */
-
-#else
-
-int vr_perfr1 = 0;
-int vr_perfr2 = 0;
-int vr_perfr3 = 0;
-int vr_perfp = 0;
-int vr_use_linux_br = 1; /* Xen */
-
-#endif
-#endif
 #endif
 /*
  * Following sysctls can be set if vrouter shouldn't pick a CPU for RPS

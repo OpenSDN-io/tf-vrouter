@@ -39,9 +39,7 @@ extern int vr_hpage_req_resp;
 
 extern int linux_to_vr(struct vr_interface *, struct sk_buff *);
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
 extern rx_handler_result_t linux_rx_handler(struct sk_buff **);
-#endif
 
 unsigned int vhost_get_ip(struct vr_interface *vif);
 rx_handler_result_t vhost_rx_handler(struct sk_buff **pskb);
@@ -64,11 +62,6 @@ static void vhost_ethtool_get_info(struct net_device *netdev,
 static const struct ethtool_ops vhost_ethtool_ops = {
     .get_drvinfo	= vhost_ethtool_get_info,
     .get_link		= ethtool_op_get_link,
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39)) && defined(CONFIG_XEN)
-    .get_tso		= ethtool_op_get_tso,
-    .set_tso		= ethtool_op_set_tso,
-    .get_flags		= ethtool_op_get_flags,
-#endif
 };
 
 unsigned int
@@ -130,7 +123,6 @@ vhost_dev_set_mac_address(struct net_device *dev, void *addr)
     return 0;
 }
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
 /*
  * this handler comes into play only for a brief moment: when the agent resets
  * vrouter, a process in which all the vifs are removed, this rx handler is
@@ -161,19 +153,13 @@ vhost_rx_handler(struct sk_buff **pskb)
 
     return RX_HANDLER_ANOTHER;
 }
-#endif
 
 
 static void
 vhost_del_tap_phys(struct net_device *pdev)
 {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
     if (rcu_dereference(pdev->rx_handler) == vhost_rx_handler)
         netdev_rx_handler_unregister(pdev);
-#else
-    vr_set_vif_ptr(pdev, NULL);
-#endif
-
     return;
 }
 
@@ -200,7 +186,6 @@ vhost_tap_phys(struct net_device *vdev, struct net_device *pdev)
     if (vp->vp_vifp)
         goto exit_tap_phys;
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
     /*
      * it can so happen (unlikely) that vhost is deleted from vrouter
      * before the physical, in which case we will have to unregister
@@ -211,10 +196,6 @@ vhost_tap_phys(struct net_device *vdev, struct net_device *pdev)
 
     if (!rcu_dereference(pdev->rx_handler))
         netdev_rx_handler_register(pdev, vhost_rx_handler, (void *)vdev);
-
-#else
-    vr_set_vif_ptr(pdev, &vr_reset_interface);
-#endif
 
 exit_tap_phys:
     return;
@@ -542,22 +523,13 @@ vhost_setup(struct net_device *dev)
     return;
 }
 
-#if (LINUX_VERSION_CODE == KERNEL_VERSION(2,6,32))
-static void
-vhost_dellink(struct net_device *dev)
-#else
 static void
 vhost_dellink(struct net_device *dev, struct list_head *head)
-#endif
 {
     struct vhost_priv *vp;
     int i;
 
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,6,33))
     unregister_netdevice_queue(dev, head);
-#else
-    unregister_netdevice(dev);
-#endif
 
     vp = netdev_priv(dev);
     if (vp) {

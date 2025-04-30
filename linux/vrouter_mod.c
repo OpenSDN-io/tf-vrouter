@@ -1017,16 +1017,7 @@ lh_csum_verify_udp(struct sk_buff *skb, struct vr_ip *iph)
 static void *
 vr_kmap_atomic(struct page *page)
 {
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,32))
-#if defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
-           (RHEL_MAJOR == 6) && (RHEL_MINOR >= 4)
-    return kmap_atomic(page, KM_SKB_DATA_SOFTIRQ);
-#else
-    return NULL;
-#endif
-#else
     return kmap_atomic(page);
-#endif
 }
 
 /*
@@ -1037,16 +1028,7 @@ vr_kmap_atomic(struct page *page)
 static void
 vr_kunmap_atomic(void *va)
 {
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,32))
-#if defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
-           (RHEL_MAJOR == 6) && (RHEL_MINOR >= 4)
-    kunmap_atomic(va, KM_SKB_DATA_SOFTIRQ);
-#else
-    return;
-#endif
-#else
     kunmap_atomic(va);
-#endif
 }
 
 /*
@@ -2724,9 +2706,6 @@ MODULE_PARM_DESC(vr_interfaces, "Number of entries in the interface table. Defau
 
 module_param(vr_uncond_close_flow_on_tcp_rst, uint, S_IRUGO);
 MODULE_PARM_DESC(vr_uncond_close_flow_on_tcp_rst, "Enable/Disable unconditional closure of flow on TCP RST. Default value is 0");
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,32))
-module_param(vr_use_linux_br, int, 0);
-#endif
 
 module_param(vrouter_dbg, int, S_IRUGO|S_IWUSR);
 MODULE_PARM_DESC(vrouter_dbg, "Set 1 for pkt dumping and 0 to disable, default value is 0");

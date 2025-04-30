@@ -23,11 +23,6 @@
 #include <net/gso.h>
 #endif
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39))
-#include <linux/if_bridge.h>
-#include <linux/openvswitch.h>
-#endif
-
 #include <net/rtnetlink.h>
 #include "vrouter.h"
 #include "vr_packet.h"
@@ -56,11 +51,8 @@ static int linux_xmit_segments(struct vr_interface *, struct sk_buff *,
 static rx_handler_result_t pkt_rps_dev_rx_handler(struct sk_buff **pskb);
 static unsigned short linux_if_get_encap(struct vr_interface *vif);
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
+
 extern rx_handler_result_t vhost_rx_handler(struct sk_buff **);
-#else
-struct vr_interface vr_reset_interface;
-#endif
 
 int vr_nf_hook_init(void);
 void vr_nf_hook_exit(void);
@@ -93,10 +85,8 @@ extern volatile bool agent_alive;
 static struct cpumask noht_cpumask[VR_MAX_CPUS];
 
 int linux_to_vr(struct vr_interface *vif, struct sk_buff *skb);
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
 rx_handler_result_t
 linux_rx_handler(struct sk_buff **pskb);
-#endif
 int lh_gro_process(struct vr_packet *pkt, struct vr_interface *vif,
     bool l2_pkt);
 void vr_host_vif_init(struct vrouter *router);
@@ -159,12 +149,7 @@ static struct net_device_ops pkt_rps_dev_ops;
 static void
 vr_skb_set_rxhash(struct sk_buff *skb, __u32 val)
 {
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,32))
-#if defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
-           (RHEL_MAJOR == 6) && (RHEL_MINOR >= 4)
-    skb->rxhash = val;
-#endif
-#elif (LINUX_VERSION_CODE < KERNEL_VERSION(3,15,0))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,15,0))
 #if defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
            (RHEL_MAJOR == 7) && (RHEL_MINOR >= 2)
     skb->hash = val;
@@ -183,16 +168,7 @@ vr_skb_set_rxhash(struct sk_buff *skb, __u32 val)
 static __u32
 vr_skb_get_rxhash(struct sk_buff *skb)
 {
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,32))
-#if defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
-           (RHEL_MAJOR == 6) && (RHEL_MINOR >= 4)
-    return skb->rxhash;
-#elif
-    return skb->hash;
-#else
-    return 0;
-#endif
-#elif (LINUX_VERSION_CODE < KERNEL_VERSION(3,15,0))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,15,0))
 #if defined(RHEL_MAJOR) && defined(RHEL_MINOR) && \
            (RHEL_MAJOR == 7) && (RHEL_MINOR >= 2)
     return skb->hash;
@@ -309,8 +285,6 @@ linux_inet_fragment(struct vr_interface *vif, struct sk_buff *skb,
     features &= (~(NETIF_F_ALL_TSO | NETIF_F_UFO | NETIF_F_GSO | NETIF_F_GSO_PARTIAL));
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
     features &= (~(NETIF_F_ALL_TSO | NETIF_F_UFO | NETIF_F_GSO));
-#else
-    features &= ~(NETIF_F_TSO | NETIF_F_UFO | NETIF_F_GSO);
 #endif
     /*
      * frag size has to be a multiple of 8 and last fragment has
@@ -581,8 +555,6 @@ linux_gso_xmit(struct vr_interface *vif, struct sk_buff *skb,
     features &= (~(NETIF_F_ALL_TSO | NETIF_F_GSO));
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
     features &= (~(NETIF_F_ALL_TSO | NETIF_F_UFO | NETIF_F_GSO));
-#else
-    features &= (~(NETIF_F_TSO | NETIF_F_UFO | NETIF_F_GSO));
 #endif
     seg_size += skb->mac_len + skb_network_header_len(skb);
     /*
@@ -678,11 +650,7 @@ linux_get_rxq(struct sk_buff *skb, u16 *rxq, unsigned int curr_cpu,
 
     if (num_cpus) {
         rxhash = skb_get_hash(skb);
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,32))
-        next_cpu = ((u32)rxhash * num_cpus) >> 16;
-#else
         next_cpu = ((u64)rxhash * num_cpus) >> 32;
-#endif
 
         /*
          * next_cpu is between 0 and (num_cpus - 1). Find the CPU corresponding
@@ -1202,7 +1170,6 @@ pull_fail:
     return -1;
 }
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
 rx_handler_result_t
 linux_rx_handler(struct sk_buff **pskb)
 {
@@ -1342,265 +1309,7 @@ error:
      return RX_HANDLER_CONSUMED;
 
 }
-#else
 
-#ifdef CONFIG_RPS
-/*
- * vr_do_rps_outer - perform RPS based on the outer header immediately after
- * the packet is received from the physical interface.
- */
-static void
-vr_do_rps_outer(struct sk_buff *skb, struct vr_interface *vif)
-{
-    unsigned int curr_cpu;
-    u16 rxq;
-
-    curr_cpu = vr_get_cpu();
-    if (vr_perfq3) {
-        rxq = vr_perfq3;
-    } else {
-        linux_get_rxq(skb, &rxq, curr_cpu, 0);
-    }
-
-    skb_record_rx_queue(skb, rxq);
-    vr_skb_set_rxhash(skb, curr_cpu);
-    skb->dev = pkt_rps_dev;
-
-    /*
-     * Store vif information in skb for later retrieval
-     */
-    ((vr_rps_t *)skb->cb)->vif_idx = vif->vif_idx;
-    ((vr_rps_t *)skb->cb)->vif_rid = vif->vif_rid;
-
-    netif_receive_skb(skb);
-
-    return;
-}
-
-/*
- * vr_get_vif_ptr - gets a pointer to the vif structure from the netdevice
- * structure depending on whether vrouter uses the bridge or OVS hook.
- */
-struct vr_interface *
-vr_get_vif_ptr(struct net_device *dev)
-{
-    struct vr_interface *vif;
-
-    if (vr_use_linux_br) {
-        vif = (struct vr_interface *) rcu_dereference(dev->br_port);
-    } else {
-        vif = (struct vr_interface *) rcu_dereference(dev->ax25_ptr);
-    }
-
-    return vif;
-}
-
-/*
- * vr_set_vif_ptr - sets a pointer to the vif structure in the netdevice
- * structure depending on whether vrouter uses the bridge or OVS hook.
- */
-void
-vr_set_vif_ptr(struct net_device *dev, void *vif)
-{
-    if (vr_use_linux_br) {
-        rcu_assign_pointer(dev->br_port, vif);
-    } else {
-        rcu_assign_pointer(dev->ax25_ptr, vif);
-        if (vif) {
-            dev->priv_flags |= IFF_OVS_DATAPATH;
-        } else {
-            dev->priv_flags &= (~IFF_OVS_DATAPATH);
-        }
-    }
-
-    return;
-}
-#endif
-
-/*
- * vr_post_rps_get_phys_dev - get the physical interface that the packet
- * arrived on, after RPS is performed based on the outer header. Returns
- * the interface pointer on success, NULL otherwise.
- */
-static struct net_device *
-vr_post_rps_outer_get_phys_dev(struct sk_buff *skb)
-{
-    struct net_device *dev = NULL;
-    struct vrouter *router;
-    struct vr_interface *vif;
-
-    router = vrouter_get(((vr_rps_t *)skb->cb)->vif_rid);
-    if (router == NULL) {
-        return NULL;
-    }
-
-    vif = __vrouter_get_interface(router,
-              ((vr_rps_t *)skb->cb)->vif_idx);
-    if (vif && (vif->vif_type == VIF_TYPE_PHYSICAL) && vif->vif_os) {
-        dev = (struct net_device *) vif->vif_os;
-    }
-
-    return dev;
-}
-
-/*
- * vr_interface_common_hook
- *
- * Common function called by both bridge and OVS hooks in 2.6 kernels.
- */
-static struct sk_buff *
-vr_interface_common_hook(struct sk_buff *skb)
-{
-    unsigned short vlan_id = VLAN_ID_INVALID;
-    struct vr_interface *vif;
-    struct vr_packet *pkt;
-    struct vlan_hdr *vhdr;
-    int rpsdev = 0;
-    int ret;
-    struct net_device *dev, *vdev;
-
-    /*
-     * LACP packets should go to the protocol handler. Hence do not
-     * claim those packets. This action is not needed in 3.x kernels
-     * because packets are claimed by the protocol handler from the
-     * component interface itself by means of netdev_rx_handler
-     */
-    if (skb->protocol == __be16_to_cpu(ETH_P_SLOW))
-        return skb;
-
-    if (skb->dev == NULL) {
-        goto error;
-    }
-    dev = skb->dev;
-
-    if (vr_get_vif_ptr(skb->dev) == (&vr_reset_interface)) {
-        vdev = vhost_get_vhost_for_phys(skb->dev);
-        if (!vdev)
-            goto error;
-        skb->dev = vdev;
-        (void)__sync_fetch_and_add(&vdev->stats.rx_bytes, skb->len);
-        (void)__sync_fetch_and_add(&vdev->stats.rx_packets, 1);
-
-        return skb;
-    }
-
-
-    if ((skb->dev == pkt_gro_dev) || (skb->dev == pkt_l2_gro_dev)) {
-        pkt_gro_dev_rx_handler(&skb);
-        return NULL;
-    } else if (skb->dev == pkt_rps_dev) {
-        if (!vr_perfr3) {
-            pkt_rps_dev_rx_handler(&skb);
-            return NULL;
-        }
-
-        dev = vr_post_rps_outer_get_phys_dev(skb);
-        if (dev == NULL) {
-            goto error;
-        }
-
-        rpsdev = 1;
-        vif = vr_get_vif_ptr(dev);
-    } else {
-        vif = vr_get_vif_ptr(skb->dev);
-    }
-
-    if (!vif)
-        goto error;
-
-#if 0
-    if(vrouter_dbg) {
-        __skb_dump_info("vr_intf_br_hk:", skb, vif);
-    }
-#endif
-
-    if ((skb = skb_share_check(skb, GFP_ATOMIC)) == NULL)
-        return skb;
-
-#ifdef CONFIG_RPS
-    /*
-     * Send the packet to another CPU core if vr_perfr3 is set. The new
-     * CPU core is chosen based on a hash of the outer header. This only needs
-     * to be done for packets arriving on a physical interface. Also, we
-     * only need to do this if RPS hasn't already happened.
-     */
-    if (vr_perfr3 && (!rpsdev) && (vif->vif_type == VIF_TYPE_PHYSICAL)) {
-        vr_do_rps_outer(skb, vif);
-
-        return NULL;
-    }
-#endif
-
-    if (skb->protocol == htons(ETH_P_8021Q)) {
-        vhdr = (struct vlan_hdr *)skb->data;
-        vlan_id = ntohs(vhdr->h_vlan_TCI) & VLAN_VID_MASK;
-    }
-
-    if (dev->type == ARPHRD_ETHER) {
-        skb_push(skb, skb->mac_len);
-    } else {
-        if (skb_headroom(skb) < ETH_HLEN) {
-            ret = pskb_expand_head(skb, ETH_HLEN - skb_headroom(skb) +
-                    ETH_HLEN + sizeof(struct agent_hdr), 0, GFP_ATOMIC);
-            if (ret)
-                goto error;
-        }
-    }
-
-    ret = linux_pull_outer_headers(skb);
-    if (ret < 0)
-        goto error;
-
-    pkt = linux_get_packet(skb, vif);
-    if (!pkt)
-        return NULL;
-
-    if (vif->vif_type == VIF_TYPE_PHYSICAL) {
-        if ((!(vif->vif_flags & VIF_FLAG_PROMISCOUS)) &&
-                (skb->pkt_type == PACKET_OTHERHOST)) {
-            vif_drop_pkt(vif, pkt, true);
-            return RX_HANDLER_CONSUMED;
-        }
-    }
-
-    vif->vif_rx(vif, pkt, vlan_id);
-    return NULL;
-
-error:
-
-    pkt = (struct vr_packet *)skb->cb;
-    vr_pfree(pkt, VP_DROP_MISC);
-
-    return NULL;
-}
-
-/*
- * vr_interface_bridge_hook
- *
- * Intercept packets received on virtual interfaces in kernel versions that
- * do not support the netdev_rx_handler_register API. This makes the vrouter
- * module incompatible with the bridge module.
- */
-static struct sk_buff *
-vr_interface_bridge_hook(struct net_bridge_port *port, struct sk_buff *skb)
-{
-    return vr_interface_common_hook(skb);
-}
-
-/*
- * vr_interface_ovs_hook
- *
- * Intercept packets received on virtual interfaces in kernel versions that
- * do not support the netdev_rx_handler_register API. This makes the vrouter
- * module incompatible with the openvswitch module.
- */
-static struct sk_buff *
-vr_interface_ovs_hook(struct sk_buff *skb)
-{
-    return vr_interface_common_hook(skb);
-}
-
-#endif
 /*
  * both add tap and del tap can come from multiple contexts. one is
  * obviously when interface is deleted from vrouter on explicit request
@@ -1610,7 +1319,6 @@ vr_interface_ovs_hook(struct sk_buff *skb)
  * whether 'rtnl' was indeed locked before trying to acquire the lock
  * and unlock iff we locked it in the first place.
  */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,36))
 static int
 linux_if_del_tap(struct vr_interface *vif)
 {
@@ -1628,33 +1336,7 @@ linux_if_del_tap(struct vr_interface *vif)
 
     return 0;
 }
-#else
-static int
-linux_if_del_tap(struct vr_interface *vif)
-{
-    struct net_device *dev;
 
-    if (vif->vif_type == VIF_TYPE_STATS)
-        return 0;
-
-    dev = (struct net_device *)vif->vif_os;
-    if (!dev)
-        return -EINVAL;
-
-    if (vr_get_vif_ptr(dev) == (void *)vif) {
-        if ((vif->vif_type == VIF_TYPE_PHYSICAL) &&
-                (vif->vif_flags & VIF_FLAG_VHOST_PHYS)) {
-            vr_set_vif_ptr(dev, &vr_reset_interface);
-        } else {
-            vr_set_vif_ptr(dev, NULL);
-        }
-    }
-
-    return 0;
-}
-#endif
-
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
 static int
 linux_if_add_tap(struct vr_interface *vif, vr_interface_req *vifr)
 {
@@ -1679,27 +1361,6 @@ linux_if_add_tap(struct vr_interface *vif, vr_interface_req *vifr)
 
     return netdev_rx_handler_register(dev, linux_rx_handler, (void *)vif);
 }
-#else
-static int
-linux_if_add_tap(struct vr_interface *vif, vr_interface_req *vifr)
-{
-    struct net_device *dev;
-
-    if (vif->vif_type == VIF_TYPE_STATS)
-        return 0;
-
-    if (vif->vif_name[0] == '\0')
-        return -ENODEV;
-
-    dev = (struct net_device *)vif->vif_os;
-    if (!dev)
-        return -EINVAL;
-
-    vr_set_vif_ptr(dev, (void *)vif);
-
-    return 0;
-}
-#endif
 
 static int
 linux_if_get_settings(struct vr_interface *vif,
@@ -1944,14 +1605,6 @@ linux_pkt_dev_free_helper(struct net_device **dev)
 static void
 linux_pkt_dev_free(void)
 {
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39))
-    if (pkt_gro_dev) {
-        vr_set_vif_ptr(pkt_gro_dev, NULL);
-    }
-    if (pkt_l2_gro_dev) {
-        vr_set_vif_ptr(pkt_l2_gro_dev, NULL);
-    }
-#endif
     linux_pkt_dev_free_helper(&pkt_gro_dev);
     linux_pkt_dev_free_helper(&pkt_l2_gro_dev);
     linux_pkt_dev_free_helper(&pkt_rps_dev);
@@ -2069,15 +1722,11 @@ linux_pkt_dev_init(char *name, void (*setup)(struct net_device *),
     if ((err = register_netdevice(pdev))) {
         vr_module_error(err, __FUNCTION__, __LINE__, 0);
     } else {
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
         if ((err = netdev_rx_handler_register(pdev,
                                               handler, NULL))) {
             vr_module_error(err, __FUNCTION__, __LINE__, 0);
             unregister_netdev(pdev);
         }
-#else
-        vr_set_vif_ptr(pdev, (void *) pdev);
-#endif
     }
 
     rtnl_unlock();
@@ -2335,11 +1984,8 @@ pkt_rps_dev_rx_handler(struct sk_buff **pskb)
     bool l2_pkt = true;
 
     if (vr_perfr3) {
-#if (LINUX_VERSION_CODE <= KERNEL_VERSION(2,6,32))
-        ASSERT(0);
-#else
+
         return linux_rx_handler(&skb);
-#endif
     }
 
     pkt = (struct vr_packet *)skb->cb;
@@ -2648,15 +2294,6 @@ vr_host_interface_exit(void)
     unregister_netdevice_notifier(&host_if_nb);
     vhost_exit();
     linux_pkt_dev_free();
-
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39))
-    if (vr_use_linux_br) {
-        br_handle_frame_hook = NULL;
-    } else {
-        openvswitch_handle_frame_hook = NULL;
-    }
-#endif
-
     return;
 }
 
@@ -2705,14 +2342,6 @@ vr_host_interface_init(void)
     ret = linux_pkt_dev_alloc();
     if (ret)
         return NULL;
-
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39))
-    if (vr_use_linux_br) {
-        br_handle_frame_hook = vr_interface_bridge_hook;
-    } else {
-        openvswitch_handle_frame_hook = vr_interface_ovs_hook;
-    }
-#endif
 
     vhost_init();
 
