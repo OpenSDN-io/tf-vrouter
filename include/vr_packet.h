@@ -389,7 +389,7 @@ __attribute__packed__open__
 struct vr_neighbor_option {
     uint8_t vno_type;
     uint8_t vno_length;
-    uint8_t vno_value[0];
+    uint8_t vno_value[];
 } __attribute__packed__close__;
 
 __attribute__packed__open__
@@ -791,7 +791,7 @@ struct vr_icmp {
     /* now only for icmp echo */
     uint16_t icmp_eid;
     uint16_t icmp_eseq;
-    uint8_t  icmp_data[0]; /* compatibility with ICMPv6 */
+    uint8_t  icmp_data[]; /* compatibility with ICMPv6 */
 } __attribute__packed__close__;
 
 static inline bool

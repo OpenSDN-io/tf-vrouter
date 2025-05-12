@@ -397,7 +397,7 @@ struct vr_dpdk_rcu_cb_data {
     struct rcu_head rcd_rcu;
     vr_defer_cb rcd_user_cb;
     struct vrouter *rcd_router;
-    unsigned char rcd_user_data[0];
+    unsigned char rcd_user_data[];
 };
 
 /* Init queue operation */

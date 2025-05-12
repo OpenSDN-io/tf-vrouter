@@ -337,6 +337,7 @@ mtrie_alloc_bucket(struct mtrie_bkt_info *ip_bkt_info, unsigned char level,
     bkt = vr_zalloc(sizeof(struct ip_bucket)
                     + sizeof(struct ip_bucket_entry) * bkt_size,
                     VR_MTRIE_BUCKET_OBJECT);
+    bkt->bkt_size = bkt_size;
     if (!bkt)
         return NULL;
 

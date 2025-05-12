@@ -263,7 +263,7 @@ struct vr_flow_table_info {
     uint32_t vfti_burst_interval_configured;
     uint32_t vfti_burst_tokens_configured;
     struct vr_timer *vfti_timer;
-    uint32_t vfti_hold_count[0];
+    uint32_t vfti_hold_count[];
 };
 
 /*

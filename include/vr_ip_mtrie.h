@@ -44,7 +44,8 @@ struct ip_bucket_entry {
 #define entry_vdata_p   entry_data.vdata_p
 
 struct ip_bucket {
-    struct ip_bucket_entry bkt_data[0];
+    unsigned int bkt_size;
+    struct ip_bucket_entry bkt_data[];
 };
 
 /*

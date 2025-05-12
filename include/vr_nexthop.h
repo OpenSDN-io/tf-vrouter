@@ -181,7 +181,7 @@ struct vr_nexthop {
     uint8_t             nh_encap_valid[VR_MAX_PHY_INF];
     struct vr_interface *nh_valid_underlay_dev[VR_MAX_PHY_INF];
     int                 nh_valid_underlay_dev_count;
-    uint8_t             nh_data[0];
+    uint8_t             nh_data[];
 };
 
 #define nh_dev                  nh_dev_arr[0]
