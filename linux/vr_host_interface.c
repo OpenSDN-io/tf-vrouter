@@ -19,7 +19,7 @@
 #include <linux/netfilter.h>
 #include <linux/netfilter_ipv4.h>
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,5,0)) //commit d457a0e
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,5,0)) || (defined(RHEL_MAJOR) && (RHEL_MAJOR >= 9) && (RHEL_MINOR >= 4)) //commit d457a0e
 #include <net/gso.h>
 #endif
 
@@ -1623,14 +1623,14 @@ pkt_gro_dev_setup(struct net_device *dev)
      * Initializing the interfaces with basic parameters to setup address
      * families.
      */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,16,0)) //commit ba530fe
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,16,0)) || (defined(RHEL_MAJOR) && (RHEL_MAJOR >= 9) && (RHEL_MINOR >= 4)) //commit ba530fe
     char tmp_dev_addr[ETH_ALEN];
     eth_random_addr(tmp_dev_addr);
     dev_addr_mod(dev, 0, tmp_dev_addr, ETH_ALEN);
     dev->addr_len = ETH_ALEN;
 #else
-     random_ether_addr(dev->dev_addr);
-     dev->addr_len = ETH_ALEN;
+    random_ether_addr(dev->dev_addr);
+    dev->addr_len = ETH_ALEN;
 #endif
 
 
@@ -1674,7 +1674,7 @@ pkt_rps_dev_setup(struct net_device *dev)
      * Initializing the interfaces with basic parameters to setup address
      * families.
      */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,16,0)) //commit ba530fe
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,16,0)) || (defined(RHEL_MAJOR) && (RHEL_MAJOR >= 9) && (RHEL_MINOR >= 4)) //commit ba530fe
     char tmp_dev_addr[ETH_ALEN];
     eth_random_addr(tmp_dev_addr);
     dev_addr_mod(dev, 0, tmp_dev_addr, ETH_ALEN);

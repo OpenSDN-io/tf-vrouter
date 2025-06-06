@@ -30,7 +30,7 @@ int vr_genetlink_init(void);
 static int netlink_trans_request(struct sk_buff *, struct genl_info *);
 extern int vr_genetlink_group_id;
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,1,0))  //commit 4fa8655
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,1,0)) || (defined(RHEL_MAJOR) && (RHEL_MAJOR >= 9) && (RHEL_MINOR >= 4)) //commit 4fa8655
 static struct nla_policy vrouter_policy[NL_ATTR_MAX] = {
     [NL_ATTR_VR_MESSAGE_PROTOCOL] = {.type = NLA_BINARY, .len = 0},
 };
@@ -41,7 +41,7 @@ static struct genl_ops vrouter_genl_ops[] = {
         .cmd        =   SANDESH_REQUEST,
         .doit       =   netlink_trans_request,
         .flags      =   GENL_ADMIN_PERM,
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,1,0)) //commit 4fa8655
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,1,0)) || (defined(RHEL_MAJOR) && (RHEL_MAJOR >= 9) && (RHEL_MINOR >= 4)) //commit 4fa8655
         .policy     =   vrouter_policy,
 #endif
     },

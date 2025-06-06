@@ -113,10 +113,10 @@ vhost_dev_set_mac_address(struct net_device *dev, void *addr)
     if (!is_valid_ether_addr(mac->sa_data))
         return -EADDRNOTAVAIL;
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,17,0)) //since commit adeef3e
-     memcpy(dev->dev_addr, mac->sa_data, ETH_ALEN);
-#else
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,17,0)) || (defined(RHEL_MAJOR) && (RHEL_MAJOR >= 9) && (RHEL_MINOR >= 5)) //since commit adeef3e
     dev_addr_mod(dev, 0, addr, ETH_ALEN);
+#else
+    memcpy(dev->dev_addr, mac->sa_data, ETH_ALEN);
 #endif
 
 
@@ -482,12 +482,12 @@ vhost_setup(struct net_device *dev)
     struct vhost_priv *vp = netdev_priv(dev);
 
     /* follow the standard steps */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,16,0)) //commit ba530fe
-     random_ether_addr(dev->dev_addr);
-#else
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,16,0)) || (defined(RHEL_MAJOR) && (RHEL_MAJOR >= 9) && (RHEL_MINOR >= 5)) //commit ba530fe
     char tmp_dev_addr[ETH_ALEN];
     eth_random_addr(tmp_dev_addr);
     dev_addr_mod(dev, 0, tmp_dev_addr, ETH_ALEN);
+#else
+    random_ether_addr(dev->dev_addr);
 #endif
 
     ether_setup(dev);
