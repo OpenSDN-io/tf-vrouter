@@ -21,8 +21,8 @@
 #define MEM_DEV_MINOR_START         0
 #define MEM_DEV_NUM_DEVS            2
 
-void vr_mem_exit(void);
-int vr_mem_init(void);
+void vr_shmem_exit(void);
+int vr_shmem_init(void);
 
 struct vr_hpage_config {
     void *hcfg_uspace_vmem;
@@ -459,7 +459,7 @@ struct file_operations mdev_ops = {
 
 
 void
-vr_mem_exit(void)
+vr_shmem_exit(void)
 {
     unregister_chrdev_region(mem_dev, MEM_DEV_NUM_DEVS);
 
@@ -471,7 +471,7 @@ vr_mem_exit(void)
 }
 
 int
-vr_mem_init(void)
+vr_shmem_init(void)
 {
     int ret;
 
@@ -503,6 +503,6 @@ vr_mem_init(void)
     return ret;
 
 init_fail:
-    vr_mem_exit();
+    vr_shmem_exit();
     return ret;
 }

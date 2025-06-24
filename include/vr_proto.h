@@ -15,8 +15,6 @@ extern void vrouter_exit(bool);
 #ifdef __KERNEL__
 extern int vr_genetlink_init(void);
 extern void vr_genetlink_exit(void);
-extern int vr_mem_init(void);
-extern void vr_mem_exit(void);
 extern void vhost_exit(void);
 #endif
 

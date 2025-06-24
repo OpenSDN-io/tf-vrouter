@@ -116,5 +116,6 @@ struct vr_list_head {
 #define VR_HPAGE_CFG_RESP_HPAGE_FAILURE_MEM_INITED  -3
 #define VR_HPAGE_CFG_RESP_MEM_ALREADY_INITED        -4
 #define VR_HPAGE_CFG_RESP_HPAGE_PARTIAL_SUCCESS     -5
+#define VR_HPAGE_CFG_RESP_SHMEM_FAILURE             -6
 
 #endif /* __VR_DEFS_H__ */

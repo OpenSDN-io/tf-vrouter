@@ -50,8 +50,8 @@ unsigned int vr_uncond_close_flow_on_tcp_rst = 0;
  * we allocate the table from hugepages and just ask the flow module to
  * use those tables
  */
-void *vr_flow_table;
-void *vr_oflow_table;
+void *vr_flow_table = NULL;
+void *vr_oflow_table = NULL;
 /*
  * The flow table memory can also be a file that could be mapped. The path
  * is set by somebody and passed to agent for it to map

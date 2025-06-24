@@ -31,7 +31,7 @@ struct vr_hugepage_info {
 } vr_hugepage_md[HPI_MAX];
 
 extern void *vr_flow_table, *vr_oflow_table;
-extern void *vr_bridge_table, *vr_bridge_otable;
+extern void *vr_bridge_table, *vr_obridge_table;
 extern unsigned char *vr_flow_path, *vr_bridge_table_path;
 char flow_mem_file[VR_UNIX_PATH_MAX];
 char bridge_mem_file[VR_UNIX_PATH_MAX];
@@ -263,7 +263,7 @@ vr_dpdk_bridge_init(void)
         return -1;
 
     vr_bridge_table = vr_dpdk.bridge_table;
-    vr_bridge_otable = vr_dpdk.bridge_table + VR_BRIDGE_TABLE_SIZE;
+    vr_obridge_table = vr_dpdk.bridge_table + VR_BRIDGE_TABLE_SIZE;
 
     return 0;
 }

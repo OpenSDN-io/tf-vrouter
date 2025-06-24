@@ -395,7 +395,7 @@ struct vrouter {
     struct vr_btable *vr_nexthops;
     struct vr_rtable *vr_inet_rtable;
     struct vr_rtable *vr_inet_mcast_rtable;
-    struct vr_rtable *vr_bridge_rtable;
+    struct vr_rtable *vr_bridge_table;
 
     vr_htable_t vr_flow_table;
     struct vr_flow_table_info *vr_flow_table_info;

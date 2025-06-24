@@ -38,6 +38,9 @@ bool vr_force_ipv6_underlay_enabled = false;
 extern struct host_os *vrouter_get_host(void);
 extern int vr_stats_init(struct vrouter *);
 extern void vr_stats_exit(struct vrouter *, bool);
+#if defined (__linux__) && defined(__KERNEL__)
+extern int vr_shmem_init(void);
+#endif
 
 extern unsigned int vr_flow_entries;
 extern unsigned int vr_oflow_entries;
@@ -50,7 +53,10 @@ extern unsigned int vr_pkt_droplog_buf_en;
 extern unsigned int vr_pkt_droplog_sysctl_en;
 extern const char *ContrailBuildInfo;
 extern unsigned int vr_uncond_close_flow_on_tcp_rst;
-
+extern void *vr_flow_table;
+extern void *vr_oflow_table;
+extern void *vr_bridge_table;
+extern void *vr_obridge_table;
 void vrouter_exit(bool);
 
 volatile bool vr_not_ready = true;
@@ -527,6 +533,8 @@ vrouter_init(void)
             vr_printf("vrouter module %u init error (%d)\n", i, ret);
             goto init_fail;
         }
+        // actually, this is not executed in the linux kernel mode
+        // in most cases
         if (vr_hpage_mem_fail || !vr_huge_page_config) {
             if (modules[i].mem) {
                 ret = modules[i].mem(&router);
@@ -590,6 +598,18 @@ vrouter_ops_process(void *s_req)
     vr_send_response(ret);
 
     return;
+}
+
+static int vr_shmem_open(const struct vrouter *router) {
+#if defined (__linux__) && defined(__KERNEL__)
+    if (router->vr_flow_table != NULL &&
+        router->vr_bridge_table != NULL) {
+        printk ("tables are in memory\n");
+        return vr_shmem_init();
+    }
+    return -1;
+#endif
+    return 0;
 }
 
 void
@@ -685,6 +705,13 @@ vr_hugepage_config_process(void *s_req)
             }
         }
         vr_hpage_mem_fail = mret;
+    }
+
+    if (ret == 0) {
+        ret = vr_shmem_open(router);
+        if (ret != 0) {
+            hcfg_resp.vhp_resp = VR_HPAGE_CFG_RESP_SHMEM_FAILURE;
+        }
     }
 
     /* Debug purpose: Increment below variable before sending response */

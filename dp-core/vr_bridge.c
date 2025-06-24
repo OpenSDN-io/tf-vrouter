@@ -32,7 +32,8 @@ extern l4_pkt_type_t vr_ip_well_known_packet(struct vr_packet *);
 extern l4_pkt_type_t vr_ip6_well_known_packet(struct vr_packet *);
 extern int vr_bridge_get_mac_type(char *mac);
 
-void *vr_bridge_table, *vr_bridge_otable;
+void *vr_bridge_table = NULL;
+void *vr_obridge_table = NULL;
 
 int
 vr_bridge_get_mac_type(char *mac)
@@ -656,11 +657,11 @@ bridge_table_init(struct vr_rtable *rtable, struct rtable_fspec *fs)
         vr_bridge_table = vr_huge_page_mem_get((VR_BRIDGE_TABLE_SIZE +
                            VR_BRIDGE_OFLOW_TABLE_SIZE), &vr_bridge_table_path);
         if (vr_bridge_table)
-            vr_bridge_otable = (unsigned char *)vr_bridge_table + VR_BRIDGE_TABLE_SIZE;
+            vr_obridge_table = (unsigned char *)vr_bridge_table + VR_BRIDGE_TABLE_SIZE;
     }
 
     rtable->algo_data = vr_htable_attach(vrouter_get(0), vr_bridge_entries,
-                vr_bridge_table, vr_bridge_oentries, vr_bridge_otable,
+                vr_bridge_table, vr_bridge_oentries, vr_obridge_table,
                 sizeof(struct vr_bridge_entry),
                 sizeof(struct vr_bridge_entry_key), 0, bridge_entry_key);
 

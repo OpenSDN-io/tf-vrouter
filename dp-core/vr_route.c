@@ -202,7 +202,7 @@ vr_route_get(vr_route_req *req)
         if ((req->rtr_family == AF_INET) || (req->rtr_family == AF_INET6)) {
             rtable = router->vr_inet_rtable;
         } else if (req->rtr_family == AF_BRIDGE) {
-            rtable = router->vr_bridge_rtable;
+            rtable = router->vr_bridge_table;
         }
 
         if (!rtable) {
@@ -258,7 +258,7 @@ vr_route_dump(vr_route_req *req)
     } else {
 
         if (req->rtr_family == AF_BRIDGE) {
-            rtable = router->vr_bridge_rtable;
+            rtable = router->vr_bridge_table;
         } else  {
             rtable = router->vr_inet_rtable;
         }
@@ -549,12 +549,12 @@ bridge_entry_add(struct rtable_fspec *fs, struct vr_route_req *req)
     if (!router)
         return -EINVAL;
 
-    if (!router->vr_bridge_rtable ||
+    if (!router->vr_bridge_table ||
             ((unsigned int)req->rtr_req.rtr_vrf_id >= fs->rtb_max_vrfs) ||
             ((unsigned int)(req->rtr_req.rtr_mac_size) != VR_ETHER_ALEN))
         return -EINVAL;
 
-    return router->vr_bridge_rtable->algo_add(router->vr_bridge_rtable, req);
+    return router->vr_bridge_table->algo_add(router->vr_bridge_table, req);
 }
 
 int
@@ -570,11 +570,11 @@ bridge_entry_del(struct rtable_fspec *fs, struct vr_route_req *req)
     if (!router)
         return -EINVAL;
 
-    if (!router->vr_bridge_rtable ||
+    if (!router->vr_bridge_table ||
             (unsigned int)req->rtr_req.rtr_vrf_id >= fs->rtb_max_vrfs)
         return -EINVAL;
 
-    return router->vr_bridge_rtable->algo_del(router->vr_bridge_rtable, req);
+    return router->vr_bridge_table->algo_del(router->vr_bridge_table, req);
 }
 
 static int
@@ -583,7 +583,7 @@ bridge_rtb_family_init(struct rtable_fspec *fs, struct vrouter *router)
     int ret;
     struct vr_rtable *table = NULL;
 
-    if (router->vr_bridge_rtable)
+    if (router->vr_bridge_table)
         return 0;
 
     if (fs->algo_init) {
@@ -598,7 +598,7 @@ bridge_rtb_family_init(struct rtable_fspec *fs, struct vrouter *router)
         }
     }
 
-    router->vr_bridge_rtable = table;
+    router->vr_bridge_table = table;
     return 0;
 }
 
@@ -606,15 +606,15 @@ static void
 bridge_rtb_family_deinit(struct rtable_fspec *fs, struct vrouter *router,
         bool soft_reset)
 {
-    if (!router->vr_bridge_rtable) {
+    if (!router->vr_bridge_table) {
         return;
     }
 
-    fs->algo_deinit(router->vr_bridge_rtable, fs, soft_reset);
+    fs->algo_deinit(router->vr_bridge_table, fs, soft_reset);
 
     if (!soft_reset) {
-        vr_free(router->vr_bridge_rtable, VR_ROUTE_TABLE_OBJECT);
-        router->vr_bridge_rtable = NULL;
+        vr_free(router->vr_bridge_table, VR_ROUTE_TABLE_OBJECT);
+        router->vr_bridge_table = NULL;
     }
 }
 

@@ -90,8 +90,7 @@ extern int vrouter_init(void);
 extern void vrouter_exit(bool);
 extern int vr_genetlink_init(void);
 extern void vr_genetlink_exit(void);
-extern int vr_mem_init(void);
-extern void vr_mem_exit(void);
+extern void vr_shmem_exit(void);
 extern void vr_malloc_stats(unsigned int, unsigned int);
 extern void vr_free_stats(unsigned int);
 
@@ -2581,7 +2580,7 @@ vrouter_linux_exit(void)
     vr_sysctl_exit();
     vr_message_exit();
     vr_assembler_exit();
-    vr_mem_exit();
+    vr_shmem_exit();
     vrouter_exit(false);
     vr_huge_pages_exit();
     vr_destroy_default_wq();
@@ -2644,10 +2643,6 @@ vrouter_linux_init(void)
     ret = vrouter_init();
     if (ret)
         return ret;
-
-    ret = vr_mem_init();
-    if (ret)
-        goto init_fail;
 
     ret = vr_assembler_init();
     if (ret)
