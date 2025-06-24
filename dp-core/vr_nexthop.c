@@ -4638,15 +4638,18 @@ vr_is_local_ecmp_nh (struct vr_nexthop *nh)
 struct vr_interface *
 vr_get_ecmp_first_member_dev (struct vr_nexthop *nh)
 {
+    int i;
     if (!nh || (nh->nh_type != NH_COMPOSITE) ||
        (!(nh->nh_flags & NH_FLAG_COMPOSITE_ECMP))) {
         return NULL;
     }
 
-    if (nh->nh_component_nh)
-        return nh->nh_component_nh[0].cnh? nh->nh_component_nh[0].cnh->nh_dev:NULL;
-    else
-        return NULL;
+    for (i = 0; i < nh->nh_component_cnt; i++) {
+        if (nh->nh_component_nh && nh->nh_component_nh[i].cnh) {
+            return nh->nh_component_nh[i].cnh ? nh->nh_component_nh[i].cnh->nh_dev : NULL;
+        }
+    }
+    return NULL;
 }
 
 static void
