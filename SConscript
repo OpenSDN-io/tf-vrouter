@@ -6,6 +6,16 @@ import subprocess
 import os
 import copy
 
+import platform
+try:
+    import distro
+except ImportError:
+    pass
+
+if hasattr(platform, 'dist'):
+    distribution = platform.dist()[0]
+else:
+    distribution = distro.id()
 
 AddOption('--kernel-dir', dest='kernel-dir', action='store',
           help='Linux kernel source directory for vrouter.ko')
@@ -33,6 +43,9 @@ compiler = env['CC']
 
 if compiler == 'cl':
     env.Append(CCFLAGS='/WX')
+
+if distribution == 'rocky':
+    env.Append(CCFLAGS='-Wno-address-of-packed-member -Wno-stringop-overflow -fcommon')
 
 # get CPU flag for GCC
 if compiler == 'gcc' or compiler == 'clang':
@@ -208,6 +221,12 @@ if dpdk_exists and not GetOption('without-dpdk') and not skip_dpdk_build:
     DPDK_FLAGS = ' '.join(o for o in env['CCFLAGS'] if ('-g' in o or '-O' in o))
     env.Append(CCFLAGS='-DPLATFORM_IS_DPDK')
 
+    # extra cflags for rocky9
+    # TODO: fix errors in tf-dpdk
+    extra_error_cflags = ""
+    if distribution == 'rocky':
+        extra_error_cflags = " -Wno-zero-length-bounds -Wno-restrict -Wno-misleading-indentation -Wno-maybe-uninitialized -Wno-uninitialized -Wno-type-limits -Wno-zero-length-bounds -Wno-array-bounds -Wno-stringop-overflow -Wno-vla-parameter -Wno-enum-conversion -fcommon"
+
     # Make DPDK
     dpdk_dst_dir = Dir(DPDK_DST_DIR).abspath
 
@@ -216,7 +235,7 @@ if dpdk_exists and not GetOption('without-dpdk') and not skip_dpdk_build:
     make_cmd = 'make' \
         + ' -j {}'.format(dpdk_jobs) \
         + ' -C {}'.format(dpdk_src_dir) \
-        + ' EXTRA_CFLAGS="' + DPDK_FLAGS + '"' \
+        + ' EXTRA_CFLAGS="' + DPDK_FLAGS + extra_error_cflags + '"' \
         + ' ARCH=x86_64' \
         + ' O={}'.format(dpdk_dst_dir) \
         + ' '

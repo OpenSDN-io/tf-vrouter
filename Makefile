@@ -90,6 +90,10 @@ ifneq ($(KERNELRELEASE), )
 		ccflags-y += -Wno-error=deprecated-declarations
 		ccflags-y += -Wno-deprecated-declarations
 	endif
+	ifeq ($(shell grep -i "^ID=" /etc/os-release | grep -ic rocky), 1)
+		ccflags-y += -Wno-missing-attributes
+		ccflags-y += -Wno-address-of-packed-member
+	endif
 	ccflags-$(CONFIG_RETPOLINE) += -DRETPOLINE
 	ifeq ($(shell uname -r | grep 2.6.32|grep -c openstack),1)
 		ccflags-y += -DISRHOSKERNEL
