@@ -15,6 +15,9 @@ env.Append(CPPPATH = ['#vrouter/dpdk/n3k'])
 env.Append(CCFLAGS = '-Werror')
 env.Append(CCFLAGS = '-Wall')
 env.Append(CCFLAGS = '-msse4.2')
+# don't fail compiling for tests
+env.Append(CCFLAGS = '-Wno-packed-not-aligned')
+
 env.Append(LIBPATH = ['../../../../dpdk/n3k'])
 env.Append(LINKFLAGS = env['DPDK_LINKFLAGS'])
 env.Replace(LIBS = ['cmocka', 'vr_dpdk_n3k', 'pthread', 'dl'])
