@@ -491,11 +491,11 @@ class TestRTIPv4(unittest.TestCase):
                 prefix=temp_prefix,
                 prefix_len=32,
                 nh_idx=1)
-            if(temp_inet.rtr_prefix == inet_rt3.rtr_prefix):
+            if temp_inet.rtr_prefix == inet_rt3.rtr_prefix:
                 self.assertEqual(nh3.idx(), temp_inet.get_rtr_nh_idx())
             else:
                 self.assertEqual(nh1.idx(), temp_inet.get_rtr_nh_idx())
-            del(temp_inet)
+            del temp_inet
 
     # Add default route(bucket expands automatically)
     def test_rt_add_default_route(self):

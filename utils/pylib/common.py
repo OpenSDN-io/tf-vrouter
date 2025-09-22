@@ -27,57 +27,47 @@ class Common(object):
             (socket.ntohl(val >> 32))
 
     @classmethod
-    def vt_encap(self, str):
+    def vt_encap(self, value):
         """Returns a list from encap hex string value"""
-        blist = list(str.replace(' ', '').decode('hex'))
-        for i in range(len(blist)):
-            blist[i] = ord(blist[i])
-        return blist
+        return list(bytes.fromhex(value.replace(' ', '')))
 
     @classmethod
-    def vt_mac(self, str):
+    def vt_mac(self, value):
         """Returns list from mac string"""
-        blist = list(str.replace(':', '').decode('hex'))
-        for i in range(len(blist)):
-            blist[i] = ord(blist[i])
-        return blist
+        return list(bytes.fromhex(value.replace(':', '')))
 
     @classmethod
-    def vt_ipv4(self, str):
+    def vt_ipv4(self, value):
         """Returns unsigned int value for corresponding ipv4 string"""
-        return socket.htonl(int(ipaddress.IPv4Address(unicode(str))))
+        return socket.htonl(int(ipaddress.IPv4Address(value)))
 
     @classmethod
-    def vt_ipv4_bytes(self, str):
+    def vt_ipv4_bytes(self, value):
         """Returns decimal list for corresponding ipv4 string"""
-        ipv4_sp = str.split(".")
+        ipv4_sp = value.split(".")
         ipv4_dec = []
         for i in range(len(ipv4_sp)):
             ipv4_dec.append(int(ipv4_sp[i]))
         return ipv4_dec
 
     @classmethod
-    def vt_ipv6(self, str):
+    def vt_ipv6(self, value):
         """Returns ipv6 upper and lower value from ipv6 string"""
-        ip6_u = int(bin(netaddr.IPAddress(str) >> 64), 2)
-        ip6_l = int(bin(netaddr.IPAddress(str) & (1 << 64) - 1), 2)
+        ip6_u = int(bin(netaddr.IPAddress(value) >> 64), 2)
+        ip6_l = int(bin(netaddr.IPAddress(value) & (1 << 64) - 1), 2)
         return self.htonll(ip6_u), self.htonll(ip6_l)
 
     @classmethod
-    def vt_ipv6_bytes(self, str):
+    def vt_ipv6_bytes(self, value):
         """Returns unsigned int value for corresponding ipv6 string"""
-        ipv6_sp = ipaddress.ip_address(unicode(str)).packed
-        ipv6_dec = []
-        for i in ipv6_sp:
-            ipv6_dec.append(struct.unpack('<B', i)[0])
-        return ipv6_dec
+        return [x for x in ipaddress.ip_address(value).packed]
 
     @classmethod
-    def vt_oif_id(self, str):
+    def vt_oif_id(self, value):
         """Returns oif_id list from corrosponding oif_id string"""
         oif_id = [-1, -1, -1]
-        if str != "":
-            oif_str_list = str.split(",")
+        if value:
+            oif_str_list = value.split(",")
         else:
             oif_str_list = []
         for i in range(len(oif_str_list)):

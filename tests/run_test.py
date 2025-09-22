@@ -95,7 +95,7 @@ def parse(cmd):
     else:
         vtest_path = args['vtest']
     if not path.exists(vtest_path):
-        logging.error("vtest path not set")
+        logging.error("vtest path does not exist")
         exit(1)
     os.environ['VTEST_PATH'] = vtest_path
 

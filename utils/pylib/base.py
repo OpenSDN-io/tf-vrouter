@@ -169,7 +169,7 @@ class Base(object):
         socket_path = os.environ.get('VROUTER_SOCKET_PATH')
         cmd = '{}{} --sock-dir {}'.format(utility_path, command,
                                           socket_path)
-        return subprocess.check_output(cmd, shell=True)
+        return subprocess.check_output(cmd, shell=True).decode()
 
     @classmethod
     def vtest_ut_init(self):
@@ -343,7 +343,7 @@ class Base(object):
             cmd += " --send_recv_pkt " + req_file
         self.logger.info("Running cmd " + cmd)
         try:
-            ret = self.run_command(cmd)
+            self.run_command(cmd)
         except Exception as err:
             self.logger.error("Failed to run vtest cmd: " + cmd)
             self.logger.error("Error : %s ".format(err))

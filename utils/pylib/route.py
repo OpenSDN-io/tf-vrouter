@@ -54,7 +54,8 @@ class Route(ObjectBase, vr_route_req):
         """
         Queries vrouter and returns rtr_nh_id value from the response xml file
         """
-        return int(self.get('rtr_nh_id'))
+        val = self.get('rtr_nh_id')
+        return int(val) if val else -1
 
     def get_rtr_label_flags(self):
         """

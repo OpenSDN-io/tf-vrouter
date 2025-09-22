@@ -59,6 +59,8 @@ vtest = env.Program('vtest', vrouter_objs, LIBS = env['LIBS'] + ['libjnprvnet.a'
 env.Requires(vtest, 'libjnprvnet.a')
 env.Requires(vtest, vrutil)
 
+env.Alias('build-vtest', vtest)
+
 Export('vtest')
 
 Return ('vtest')

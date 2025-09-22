@@ -52,9 +52,7 @@ env.Requires(dpdk_objs, dpdk_lib)
 env.Default(dpdk_vrouter)
 
 env.Alias('install', env.Install(env['INSTALL_BIN'], dpdk_vrouter))
-env.Alias('install',
-           env.InstallAs(env['INSTALL_SYSTEMD'] + '/contrail-vrouter-dpdk.service',
-           '#/vrouter/systemd/contrail-vrouter-dpdk.service'))
+env.Alias('build-vrouter-dpdk', env.Install(env['INSTALL_BIN'], dpdk_vrouter))
 
 # Comment the following lines till UT end if the build system doesnt have SSE3
 # TODO: Add libpcap-devel, libpcap to buildRequires in spec before enabling this.

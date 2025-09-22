@@ -33,7 +33,7 @@ class ObjectBase(Base, Common):
         """Deletes objects in the reverse order from the list"""
         super(ObjectBase, self).tearDown()
         if ObjectBase.auto_cleanup:
-            for id in ObjectBase.__obj_dict__.keys():
+            for id in list(ObjectBase.__obj_dict__.keys()):
                 obj = ObjectBase.__obj_dict__[id]
                 self.logger.info("\nDeleting object: {}".format(obj))
                 obj.delete()

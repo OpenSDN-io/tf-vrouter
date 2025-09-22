@@ -162,7 +162,8 @@ class Flow(ObjectBase, vr_flow_req):
         Queries vrouter and returns fresp_index value from the response xml\
         file
         """
-        return int(self.get('fresp_index'))
+        val = self.get('fresp_index')
+        return int(val) if val else -1
 
     def get_fr_gen_id(self):
         """
