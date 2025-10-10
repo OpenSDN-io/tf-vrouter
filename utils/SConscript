@@ -115,8 +115,10 @@ binaries.append(qosmap)
 scripts  = ['vifdump', 'dpdkvifstats.py', 'pkt_droplog.py']
 env.Default(binaries)
 
-env.Alias('install', env.Install(env['INSTALL_BIN'], binaries + scripts))
+# for packaging into docker images
+env.Alias('install', env.Install(env['INSTALL_BIN'] + '/tools', binaries + scripts))
 
+# for UT purposes
 env.Alias('build-vrouter-utils', env.Install(env['INSTALL_BIN'], binaries + scripts))
 
 if 'install' in COMMAND_LINE_TARGETS:
