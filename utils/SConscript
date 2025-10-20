@@ -30,15 +30,17 @@ for sdir in subdirs:
 # Call scons for vtest separately to use it later
 vtest = env.SConscript('vtest/SConscript', exports='VRutilsEnv', duplicate = 0)
 
-vtest_py_ut_targets = ['vrouter-py-ut:test', 'vrouter-py-ut-pycodestyle', \
-                       'vrouter-py-ut-flake']
+vtest_py_ut_targets = [
+    'vrouter-py-ut:test',
+    'vrouter-py-ut-pycodestyle',
+    'vrouter-py-ut-flake']
 for target in vtest_py_ut_targets:
     if target in COMMAND_LINE_TARGETS:
-        vtest_py_dir = ['vtest_py']
-        for sdir in vtest_py_dir:
-            env.SConscript(sdir + '/SConscript',
-                           exports='VRutilsEnv',
-                           duplicate = 0)
+        # include subdir if any of vtest_py_ut_targets is in targets
+        env.SConscript('vtest_py/SConscript',
+                        exports='VRutilsEnv',
+                        duplicate = 0)
+        break
 
 # Build libvrutil
 libvrutil = 'vrutil'

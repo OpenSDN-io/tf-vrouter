@@ -34,66 +34,70 @@ print("vtest_py_src_root %s" %(vtest_py_src_root))
 print("vtest_py_venv_sock_dir %s" %(vtest_py_venv_sock_dir))
 
 # create venv directory
-create_venv_dir = env.Command("create_venv_dir", [],
-                              Mkdir(vtest_py_venv_root))
+create_venv_dir = env.Command("create_venv_dir", [], Mkdir(vtest_py_venv_root))
 
 # copy vr.sandesh file as vr_py.sandesh file in venv directory
 copy_sandesh = env.Command("copy_sandesh", [],
-                           Copy(vtest_py_venv_root + "/vr_py.sandesh",
-                                src_root+"/vrouter/sandesh/vr.sandesh"))
+    Copy(vtest_py_venv_root + "/vr_py.sandesh",
+    src_root+"/vrouter/sandesh/vr.sandesh"))
 
 # replace "buffer sandesh" with "struct" in sandesh file
 replace_sandesh = env.Command("replace_sandesh", [],
-                              "sed -i 's/buffer sandesh/struct/g' " +
-                              vtest_py_venv_root + "/vr_py.sandesh")
+    "sed -i 's/buffer sandesh/struct/g' " +
+    vtest_py_venv_root + "/vr_py.sandesh")
 
 # create dir for vrouter sandesh py files in venv directory
-create_vr_py_dir = env.Command("create_vr_py_dir", [],
-                               Mkdir(vtest_py_venv_root + "/vr_py_sandesh"))
+create_vr_py_dir = env.Command("create_vr_py_dir", [], 
+    Mkdir(vtest_py_venv_root + "/vr_py_sandesh"))
 
 # generate vrouter sandesh py files
 S = src_root + "/build/bin/sandesh"
-gen_sandesh = env.Command("gen_sandesh", [],
-                           S + " --gen py:new_style \
-                           -I controller/src/ \
-                           -I src/contrail-common/ \
-                           --out "+ vtest_py_venv_root + "/vr_py_sandesh/ " +
-                           vtest_py_venv_root+"/vr_py.sandesh")
+gen_sandesh = env.Command(
+    "gen_sandesh", [],
+    S + " --gen py:new_style \
+    -I controller/src/ \
+    -I src/contrail-common/ \
+    --out "+ vtest_py_venv_root + "/vr_py_sandesh/ " +
+    vtest_py_venv_root+"/vr_py.sandesh")
 env.Depends(gen_sandesh, S)
 
 # copy pysandesh library to venv
-S = build_root + "/tools/sandesh/library/python/pysandesh"
-copy_pysandesh = env.Command("copy_pysandesh", [],
-                              vtest_py_src_root + "/copy_dir.py " + S + " " +
-                              vtest_py_venv_root + "/pysandesh")
+S = src_root + "/src/contrail-common/sandesh/library/python/pysandesh"
+copy_pysandesh = env.Command(
+    "copy_pysandesh", [],
+    vtest_py_src_root + "/copy_dir.py " + S + " " +
+    vtest_py_venv_root + "/pysandesh")
 env.Depends(copy_pysandesh, S)
 
 # copy test files to venv
-copy_test_files = env.Command("copy_test_files", [],
-                              vtest_py_src_root + "/copy_dir.py "+
-                              src_root + "/vrouter/tests " +
-                              vtest_py_venv_root + "/tests")
+copy_test_files = env.Command(
+    "copy_test_files", [],
+    vtest_py_src_root + "/copy_dir.py "+
+    src_root + "/vrouter/tests " +
+    vtest_py_venv_root + "/tests")
 
 # copy vtest lib to venv
-copy_vtest_lib = env.Command("copy_vtest_lib", [],
-                              vtest_py_src_root + "/copy_dir.py "+
-                              src_root + "/vrouter/utils/pylib " +
-                              vtest_py_venv_root + "/lib")
+copy_vtest_lib = env.Command(
+    "copy_vtest_lib", [],
+    vtest_py_src_root + "/copy_dir.py "+
+    src_root + "/vrouter/utils/pylib " +
+    vtest_py_venv_root + "/lib")
 
 # create sock dir in venv for vrouter to run
-create_sock_dir = env.Command("create_sock_dir", [],
-                              [Mkdir(vtest_py_venv_root + "/sock")])
+create_sock_dir = env.Command(
+    "create_sock_dir", [],
+    [Mkdir(vtest_py_venv_root + "/sock")])
 
 # setup venv
-setup_venv = env.Command("setup_venv", [],
-                         vtest_py_src_root + "/setup_venv.sh "+
-                         vtest_py_venv_root + " " +
-                         vtest_py_src_root + "/requirements.txt")
+setup_venv = env.Command(
+    "setup_venv", [],
+    vtest_py_src_root + "/setup_venv.sh "+
+    vtest_py_venv_root + " " +
+    vtest_py_src_root + "/requirements.txt")
 
 # run the ut tests
 # set the env variables used by run_test.sh
-env.AppendENVPath('VROUTER_DPDK_PATH', \
-                   build_root+"/vrouter/dpdk/contrail-vrouter-dpdk")
+env.AppendENVPath('VROUTER_DPDK_PATH', build_root+"/vrouter/dpdk/contrail-vrouter-dpdk")
 env.AppendENVPath('VTEST_PATH', build_root+"/vrouter/utils/vtest/vtest")
 env.AppendENVPath('VROUTER_SOCKET_PATH', vtest_py_venv_sock_dir)
 env.AppendENVPath('VTEST_PY_VENV_PATH', vtest_py_venv_root)
@@ -102,9 +106,10 @@ cmd = "%s/vrouter/tests/run_test.py -gxml --all" % src_root
 vtest_py_ut = env.Command("vtest_py_ut", [], cmd)
 
 # commands for running pycodestyle
-vtest_py_ut_pycodestyle = env.Command("vtest_py_ut_pycodestyle", [], \
-                              src_root + \
-                              "/vrouter/tests/run_test.py --pycodestyle")
+vtest_py_ut_pycodestyle = env.Command(
+    "vtest_py_ut_pycodestyle", [],
+    src_root + \
+    "/vrouter/tests/run_test.py --pycodestyle")
 
 env.Depends(copy_sandesh, create_venv_dir)
 env.Depends(replace_sandesh, copy_sandesh)
@@ -120,11 +125,11 @@ env.Depends(vtest_py_ut, vtest_py_ut_pycodestyle)
 
 arg_vt = []
 for arg in sys.argv:
-     if arg == "vrouter-py-ut:test":
+    if arg == "vrouter-py-ut:test":
         arg_vt.append("build-vrouter-dpdk")
         arg_vt.append("build-vtest")
         arg_vt.append("build-vrouter-utils")
-     else:
+    else:
         arg_vt.append(arg)
 
 build_vrouter = env.Command("build_vrouter", [], ' '.join(arg_vt))
@@ -132,7 +137,7 @@ build_vrouter = env.Command("build_vrouter", [], ' '.join(arg_vt))
 gen_py_sandesh = env.Command("gen_py_sandesh", [], "scons sandesh/library/python:pysandesh")
 
 check_wireshark_plugins = env.Command("compare_with_vr_sandesh", [], \
-            "sh "+src_root+"/vrouter/utils/sandump/compare_with_vr_sandesh.sh")
+    "sh "+src_root+"/vrouter/utils/sandump/compare_with_vr_sandesh.sh")
 
 env.Requires(gen_py_sandesh, build_vrouter)
 env.Requires(check_wireshark_plugins, gen_py_sandesh)
@@ -144,15 +149,12 @@ env.Depends(vtest_py_ut_pycodestyle, setup_venv)
 env.Requires(vtest_py_ut_pycodestyle, gen_py_sandesh)
 
 # commands for running flake
-vtest_py_ut_flake = env.Command("vtest_py_ut_flake", [], \
-                                src_root + \
-                                "/vrouter/tests/run_test.py --flake")
+vtest_py_ut_flake = env.Command(
+    "vtest_py_ut_flake", [], \
+    src_root + \
+    "/vrouter/tests/run_test.py --flake")
 env.Depends(vtest_py_ut_flake, setup_venv)
 env.Requires(vtest_py_ut_flake, gen_py_sandesh)
 
 env.Alias('vrouter-py-ut-pycodestyle', vtest_py_ut_pycodestyle)
 env.Alias('vrouter-py-ut-flake', vtest_py_ut_flake)
-
-# Local Variables:
-# mode: python
-# End:
