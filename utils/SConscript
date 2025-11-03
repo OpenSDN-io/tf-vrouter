@@ -117,6 +117,8 @@ binaries.append(qosmap)
 scripts  = ['vifdump', 'dpdkvifstats.py', 'pkt_droplog.py']
 env.Default(binaries)
 
+env.Depends(binaries, "sandesh")
+
 # for packaging into docker images
 env.Alias('install', env.Install(env['INSTALL_BIN'] + '/tools', binaries + scripts))
 

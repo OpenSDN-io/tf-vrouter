@@ -131,8 +131,8 @@ for arg in sys.argv:
         arg_vt.append("build-vrouter-utils")
     else:
         arg_vt.append(arg)
-
 build_vrouter = env.Command("build_vrouter", [], ' '.join(arg_vt))
+env.Depends(build_vrouter, 'sandesh')
 
 gen_py_sandesh = env.Command("gen_py_sandesh", [], "scons sandesh/library/python:pysandesh")
 
