@@ -158,7 +158,7 @@ def genBuildVersion():
 #define VROUTER_VERSIONID "%(build)s"
 
 #endif /* __VR_BUILDINFO_H__ */
-""" % {'build': env.GetBuildVersion()[1]}
+""" % {'build': env.GetBuildVersion()}
     with open(os.path.join(dp_dir, 'include/vr_buildinfo.h'), 'w') as c_file:
         c_file.write(h_code)
 
