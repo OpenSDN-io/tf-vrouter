@@ -128,7 +128,7 @@ __vr_huge_page_get(uint64_t uspace_vmem, int npages, int mem_size, int hugepage_
     down_read(&current->mm->mmap_sem);
 #endif
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,5,0)) //commit 54d0206
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,5,0)) || (defined(RHEL_MAJOR) && (RHEL_MAJOR >= 9) && (RHEL_MINOR >= 6)) //commit 54d0206
     spages = get_user_pages(uspace_vmem, npages, FOLL_WRITE, pmem);
 #elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4,9,0))
     spages = get_user_pages(uspace_vmem, npages, FOLL_WRITE, pmem, NULL);
