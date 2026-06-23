@@ -38,5 +38,18 @@ skb_get_hash(struct sk_buff *skb)
 #endif
 #endif
 
+#ifndef timer_container_of
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 16, 0)
+#define timer_container_of(var, callback_timer, timer_fieldname) \
+        from_timer(var, callback_timer, timer_fieldname)
+#endif
+#endif
+
+#ifndef timer_delete_sync
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 15, 0)
+#define timer_delete_sync del_timer_sync
+#endif
+#endif
+
 
 #endif

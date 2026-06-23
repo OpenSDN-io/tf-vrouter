@@ -2138,7 +2138,7 @@ linux_timer(linux_timer_callback_param_t arg)
     struct timer_list *timer = &vtimer->timer;
 #else
     struct timer_list *timer = arg;
-    struct vr_timer *vtimer = from_timer(vtimer, timer, timer);
+    struct vr_timer *vtimer = timer_container_of(vtimer, timer, timer);
 #endif
 
     vtimer->vt_timer(vtimer->vt_vr_arg);
@@ -2156,7 +2156,7 @@ lh_delete_timer(struct vr_timer *vtimer)
     struct timer_list *timer = &vtimer->timer;
 
     if (timer) {
-        del_timer_sync(timer);
+        timer_delete_sync(timer);
     }
 
     return;
@@ -2746,3 +2746,5 @@ module_exit(vrouter_linux_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_VERSION(VROUTER_VERSIONID);
+MODULE_DESCRIPTION("OpenSDN kernel forwarder for vrouter agent");
+
