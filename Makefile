@@ -36,7 +36,7 @@
 SANDESH_HEADER_PATH ?= $(src)/
 SANDESH_EXTRA_HEADER_PATH ?= $(src)/
 
-SANDESH_BINS := $(SANDESH_SRC_ROOT)/sandesh/gen-c/vr_types.o
+SANDESH_BINS := $(SANDESH_SRC_ROOT)sandesh/gen-c/vr_types.o
 
 SANDESH_LIB_BINS := $(SANDESH_SRC_ROOT)sandesh/library/c/sandesh.o
 SANDESH_LIB_BINS += $(SANDESH_SRC_ROOT)sandesh/library/c/protocol/thrift_protocol.o
