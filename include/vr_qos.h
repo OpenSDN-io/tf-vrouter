@@ -2,6 +2,7 @@
  * vr_qos.h --
  *
  * Copyright (c) 2016, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #ifndef __VR_QOS_H__

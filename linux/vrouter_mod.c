@@ -2,6 +2,7 @@
  * vrouter_mod.c -- linux vrouter module
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 
 #include <linux/init.h>

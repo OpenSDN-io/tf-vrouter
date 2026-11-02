@@ -2,6 +2,7 @@
  * sh_mem.h
  *
  * Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef SHM_MEM_H
 #define SHM_MEM_H

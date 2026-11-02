@@ -2,6 +2,7 @@
  * vrouter.h -- vrouter helper
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VROUTER_H__
 #define __VROUTER_H__

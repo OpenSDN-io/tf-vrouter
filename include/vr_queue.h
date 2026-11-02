@@ -2,6 +2,7 @@
  * vr_queue.h --
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VR_QUEUE_H__
 #define __VR_QUEUE_H__

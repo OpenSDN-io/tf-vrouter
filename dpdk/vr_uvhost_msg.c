@@ -3,6 +3,7 @@
  * vhost thread.
  *
  * Copyright (c) 2014 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 
 #include <sys/poll.h>

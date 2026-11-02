@@ -2,6 +2,7 @@
  * vr_proto_ip6.c -- ip6 handler
  *
  * Copyright (c) 2014, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #include <vr_os.h>

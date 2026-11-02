@@ -2,6 +2,7 @@
  * vhost.h -- definitions and other things that are useful for everybody ?
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VHOST_H__
 #define __VHOST_H__

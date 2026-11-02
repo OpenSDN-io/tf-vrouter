@@ -2,6 +2,7 @@
  * udp_util.c -- netlink utility functions common for all the utilities
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #include <stdio.h>
 #include <stdlib.h>

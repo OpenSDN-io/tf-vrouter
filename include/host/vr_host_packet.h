@@ -2,6 +2,7 @@
  * vr_host_packet.h -- host representation of packet
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VR_HOST_PACKET_H__
 #define __VR_HOST_PACKET_H__

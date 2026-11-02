@@ -2,6 +2,7 @@
  * vt_gen_lib.c --
  *
  * Copyright(c) 2015, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #include <stdio.h>

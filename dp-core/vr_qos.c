@@ -2,6 +2,7 @@
  * vr_qos.c -- QOS implementation for vRouter datapath
  *
  * Copyright (c) 2015, Juniper Networks Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #include <vr_os.h>

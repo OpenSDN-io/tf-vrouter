@@ -2,6 +2,7 @@
  * vr_vxlan.h -- VXLAN encapsulation handling
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VR_VXLAN_H__
 #define __VR_VXLAN_H__

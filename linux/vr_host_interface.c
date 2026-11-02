@@ -2,6 +2,7 @@
  * vr_host_interface.c -- linux specific handling of vrouter interfaces
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #include <linux/init.h>
 #include <linux/version.h>

@@ -2,6 +2,7 @@
  * vr_util.c -- common functions used by utilities in a library form
  *
  * Copyright (c) 2015, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #include <ctype.h>

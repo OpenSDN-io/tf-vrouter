@@ -2,6 +2,7 @@
  * vt_message.c -- the messaging module
  *
  * Copyright (c) 2015, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #include <string.h>

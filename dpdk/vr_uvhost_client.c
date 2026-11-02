@@ -3,6 +3,7 @@
  * peers with the vhost client inside qemu (version 2.1 and later).
  *
  * Copyright (c) 2014 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 
 #include "vr_dpdk.h"

@@ -2,6 +2,7 @@
  * vr_host_io.c -- simplistic io scheduler
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #include <string.h>
 #include <poll.h>

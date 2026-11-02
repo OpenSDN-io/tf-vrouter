@@ -2,6 +2,7 @@
  * vr_pkt_droplog.h
  *
  * Copyright (c) 2018 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VR_PKT_DROPLOG_H__
 #define __VR_PKT_DROPLOG_H__

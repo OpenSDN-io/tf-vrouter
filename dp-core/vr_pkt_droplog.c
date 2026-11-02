@@ -2,6 +2,7 @@
  * vr_pkt_droplog.c -- Log drop packet information.
  *
  * Copyright (c) 2018 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #include <vr_os.h>
 #include <vr_types.h>

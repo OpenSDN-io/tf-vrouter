@@ -2,6 +2,7 @@
  * vr_hash.h
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 
 #ifndef _VR_HASH_H

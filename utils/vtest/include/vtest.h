@@ -2,6 +2,7 @@
  * vtest.h --
  *
  * Copyright (c) 2015, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #ifndef __VTEST_H__

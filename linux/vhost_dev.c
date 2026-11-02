@@ -2,6 +2,7 @@
  * vhost_dev.c -- interface in the host OS
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #include <linux/init.h>
 #include <linux/version.h>

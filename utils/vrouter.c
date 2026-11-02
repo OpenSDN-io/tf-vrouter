@@ -2,6 +2,7 @@
  *  vrouter.c -- print vrouter information
  *
  *  Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
+ *  Copyright Contributors to the OpenSDN project
  */
 
 #include <stdio.h>

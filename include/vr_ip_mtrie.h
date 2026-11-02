@@ -2,6 +2,7 @@
  * vr_ip_mtrie.h -- 
  *
  * Copyright (c) 2014 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VR_IP_MTRIE_H__
 #define __VR_IP_MTRIE_H__

@@ -1,3 +1,8 @@
+/*
+ *
+ * Copyright (c) Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
+ */
 #ifndef __MESSAGE_H__
 #define __MESSAGE_H__
 

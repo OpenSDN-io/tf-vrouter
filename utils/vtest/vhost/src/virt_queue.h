@@ -3,6 +3,7 @@
  * reference file (virtio_ring.h)
  *
  * Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
 */
 #ifndef VIRT_QUEUE_H
 #define VIRT_QUEUE_H

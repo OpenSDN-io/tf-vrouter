@@ -1,3 +1,10 @@
+/*
+ *
+ * Copyright (c) Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
+ */
+
+
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>

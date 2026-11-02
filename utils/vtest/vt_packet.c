@@ -1,3 +1,8 @@
+/*
+ *
+ * Copyright (c) Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
+ */
 
 #include <string.h>
 #include <stdbool.h>

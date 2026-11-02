@@ -2,6 +2,7 @@
  * vr_info.h -- vr_info header
  *
  * Copyright (c) 2020 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 
 #ifndef __VR_INFO_H__

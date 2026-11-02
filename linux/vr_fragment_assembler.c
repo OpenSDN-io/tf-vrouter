@@ -2,6 +2,7 @@
  * vr_fragment_assembler.c -- the OS specific parts of the assembler
  *
  * Copyright (c) 2015, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #include <linux/init.h>

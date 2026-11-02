@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VR_BITMAP_H__
 #define __VR_BITMAP_H__

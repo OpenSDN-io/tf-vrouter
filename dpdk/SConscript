@@ -1,6 +1,7 @@
 # Contributed by Semihalf
 #
 # Copyright (c) 2014, 2015 Juniper Networks, Inc. All rights reserved.
+# Copyright Contributors to the OpenSDN project
 #
 import os
 import subprocess

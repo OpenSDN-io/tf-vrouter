@@ -1,6 +1,6 @@
 /*
  * vr_default_wc.c - functions to manage hash table workqueue
- * Copyright (c) 2025 Matvey Kraposhin
+ * Copyright Contributors to the OpenSDN project
  */
 
 #include <linux/init.h>

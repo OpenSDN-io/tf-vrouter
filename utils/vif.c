@@ -2,6 +2,7 @@
  * vif.c -- 'vrouter' interface utility
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #include <stdio.h>
 #include <assert.h>

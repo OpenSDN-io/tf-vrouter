@@ -2,6 +2,7 @@
  * vr_dpdk_flow_mem.c -- memory allocation for flow table
  *
  * Copyright(c) 2014, Juniper Networks Inc.,
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 

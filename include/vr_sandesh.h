@@ -2,6 +2,7 @@
  * vr_sandesh.h --
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VR_SANDESH_H__
 #define __VR_SANDESH_H__

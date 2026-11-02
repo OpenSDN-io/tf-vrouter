@@ -2,6 +2,7 @@
  * qosmap.c -- utility to set and get qos mappings
  *
  * Copyright (c) 2016, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #include <stdio.h>

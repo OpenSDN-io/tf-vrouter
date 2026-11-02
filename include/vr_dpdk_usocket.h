@@ -2,6 +2,7 @@
  * vr_dpdk_usocket.h -- user space io helpers
  *
  * Copyright (c) 2014, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #ifndef __VR_DPDK_USOCKET_H__

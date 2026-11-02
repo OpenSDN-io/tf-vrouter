@@ -2,6 +2,7 @@
  * vr_mem.h -- table map definitions
  *
  * Copyright(c) 2016, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 #ifndef __VR_MEM_H__

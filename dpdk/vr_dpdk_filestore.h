@@ -3,6 +3,7 @@
  * to store/retrieve the VM feature set.
  *
  * Copyright (c) 2018 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 
 #ifndef __VR_DPDK_FILESTORE_H__

@@ -2,6 +2,7 @@
  * vr_dpdk_info.c - DPDK specific callback functions for vr_info .
  *
  * Copyright (c) 2020 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #include <vr_os.h>
 #include <vr_types.h>

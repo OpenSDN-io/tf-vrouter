@@ -2,6 +2,7 @@
  * vr_stats.h
  *
  * Copyright (c) 2017 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VR_STATS_H__
 #define __VR_STATS_H__

@@ -2,6 +2,7 @@
  * vt_main.c -- test main function
  *
  * Copyright (c) 2015, Juniper Networks, Inc.
+ * Copyright Contributors to the OpenSDN project
  * All rights reserved
  */
 

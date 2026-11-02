@@ -2,6 +2,7 @@
  * vr_info.c -- vr_info functions
  *
  * Copyright (c) 2020 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 
 #include <vr_os.h>

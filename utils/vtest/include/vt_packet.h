@@ -1,4 +1,8 @@
-
+/*
+ *
+ * Copyright (c) Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
+ */
 #ifndef __PACKET_H__
 #define __PACKET_H__
 

@@ -2,6 +2,7 @@
  * vr_host_interface.c -- host interfaces
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #include <sys/socket.h>
 #include <assert.h>

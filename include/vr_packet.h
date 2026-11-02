@@ -2,6 +2,7 @@
  * vr_packet.h -- packet handling functionality of vrouter
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __VR_PACKET_H__
 #define __VR_PACKET_H__

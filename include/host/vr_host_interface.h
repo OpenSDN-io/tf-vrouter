@@ -2,6 +2,7 @@
  * vr_host_interface.h -- host interface definitions
  *
  * Copyright (c) 2013 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #ifndef __HOST_VR_HOST_INTERFACE_H__
 #define __HOST_VR_HOST_INTERFACE_H__

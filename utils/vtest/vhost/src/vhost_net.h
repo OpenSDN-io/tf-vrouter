@@ -2,6 +2,7 @@
  * reference file (virtio_ring.h)
     *  *
     *   * Copyright (c) 2015 Juniper Networks, Inc. All rights reserved.
+    *   * Copyright Contributors to the OpenSDN project
     *   */
 #ifndef VHOST_NET_H
 #define VHOST_NET_H

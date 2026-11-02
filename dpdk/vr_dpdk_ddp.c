@@ -2,6 +2,7 @@
  * vr_dpdk_ddp.c - DDP specific API's for adding/deleting the firmware.
  *
  * Copyright (c) 2020 Juniper Networks, Inc. All rights reserved.
+ * Copyright Contributors to the OpenSDN project
  */
 #include <sys/types.h>
 #include <sys/stat.h>
